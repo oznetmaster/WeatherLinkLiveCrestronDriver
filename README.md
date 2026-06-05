@@ -105,7 +105,7 @@ This repository includes a GitHub Actions workflow that builds the Release packa
 
 Typical release flow:
 1. Push the release commit and tag
-2. Publish a GitHub Release for that tag
+2. Publish the GitHub Release for that tag
 3. Let the workflow build and attach the `.pkg` asset automatically
 
 For end users, GitHub Releases are the preferred download point: download the attached `.pkg` asset, not the automatic source archive assets.
