@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>WeatherLinkLiveLibrary</id>
+    <version>1.0.1</version>
+    <authors>Neil Colvin</authors>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/oznetmaster/WeatherLinkLiveLibrary</projectUrl>
+    <description>Reusable WeatherLink Live API client library for .NET Framework 4.7.2 and .NET 10.</description>
+    <tags>weather weatherlink weatherlink-live api library</tags>
+    <repository type="git" url="https://github.com/oznetmaster/WeatherLinkLiveLibrary" commit="bd2124c477a339ca865bcb561ac0e33c7ae769d7" />
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="Newtonsoft.Json" version="13.0.5-beta1" exclude="Build,Analyzers" />
+        <dependency id="log4net" version="3.3.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.7.2">
+        <dependency id="Hafner.Compatibility.MetaPackage" version="1.9.0" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.5-beta1" exclude="Build,Analyzers" />
+        <dependency id="System.Net.Http" version="4.3.4" exclude="Build,Analyzers" />
+        <dependency id="log4net" version="3.3.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="Microsoft.CSharp" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Configuration" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.IO" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Net.Http" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Runtime" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Algorithms" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Encoding" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Primitives" targetFramework=".NETFramework4.7.2" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.X509Certificates" targetFramework=".NETFramework4.7.2" />
+    </frameworkAssemblies>
+  </metadata>
+</package>

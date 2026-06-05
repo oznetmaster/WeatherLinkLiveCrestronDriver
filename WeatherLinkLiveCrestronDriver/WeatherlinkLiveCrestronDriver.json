@@ -1,0 +1,82 @@
+{
+  "SchemaVersion": "2.0",
+  "GeneralInformation": {
+    "MinSdkVersion": "21.0000.0000",
+    "Guid": "2bda31b1-1d61-4c2d-9d7a-ccecc9699495",
+    "DeviceType": "Weather Station",
+    "Manufacturer": "WeatherLink Live",
+    "BaseModel": "WeatherLink Live Weather Station",
+    "OtherSupportedModels": [],
+    "SupportedSeries": [
+      "WeatherLink Live"
+    ],
+    "DependencyGroup": "",
+    "Developer": {
+      "Company": "Neil Colvin",
+      "Contact": "Neil Colvin",
+      "Email": "",
+      "Website": "",
+      "PhoneNumber": ""
+    },
+    "DriverVersion": "2.0.000.0108",
+    "VersionDate": "2026-06-05 15:00:41.397"
+  },
+  "ConfigurationSteps": {
+    "Items": [
+      {
+        "Id": "WeatherLinkLiveHost",
+        "Title": "WeatherLink Live Host",
+        "Description": "Optional. IP address or hostname of the local WeatherLink Live device. When unavailable, the driver falls back to cloud weather data.",
+        "Required": false,
+        "Persistent": true,
+        "ValueType": "String"
+      },
+      {
+        "Id": "OpenWeatherApiKey",
+        "Title": "OpenWeather API Key",
+        "Description": "API key used with SimpleWeatherClient for forecast data and fallback current conditions.",
+        "Required": true,
+        "Persistent": true,
+        "ValueType": "String"
+      },
+      {
+        "Id": "Units",
+        "Title": "Units",
+        "Description": "Select the preferred display units for temperature and weather data.",
+        "Required": false,
+        "Persistent": true,
+        "ValueType": "String",
+        "DefaultValue": "Metric",
+        "AvailableValues": [
+          "Metric",
+          "UK",
+          "Imperial"
+        ]
+      },
+      {
+        "Id": "RefreshIntervalSeconds",
+        "Title": "Refresh Interval Seconds",
+        "Description": "How often the driver refreshes current conditions and forecast information.",
+        "Required": false,
+        "MinValue": 60,
+        "MaxValue": 86400,
+        "Persistent": true,
+        "ValueType": "Number",
+        "DefaultValue": "300"
+      }
+    ],
+    "Steps": [
+      {
+        "StepId": "WeatherConfiguration",
+        "Items": [
+          "WeatherLinkLiveHost",
+          "OpenWeatherApiKey",
+          "Units",
+          "RefreshIntervalSeconds"
+        ],
+        "NextStep": null
+      }
+    ],
+    "FirstStep": "WeatherConfiguration"
+  }
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<uidefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://prd-use-rad-assets.azurewebsites.net/ExtensionsSchemaDefinition.xsd">
+	<version ver="2.0" />
+	<tile icon="{weatherIcon}" status="{tileDisplay}" secondaryicon="{weatherIcon}" navigation="show:CurrentConditionsPage" showinhomepage="#true" showinroompage="#true"/>
+	<layouts>
+		<layout id="CurrentConditionsPage" title="^CurrentConditionsPageTitle" isdefaultlayout="#true">
+			<controls>
+				<textdisplay id="CurrentTemperature" title="^CurrentTemperatureTitle" line1label="{currentTemperatureDisplay}" line2label="{humiditySummary}" line3label="{pressureSummary}" />
+				<textdisplay id="CurrentWind" title="^WindTitle" line1label="{windSummary}" line2label="{windDirectionSummary}" line3label="{windGustSummary}" />
+				<textdisplay id="CurrentRain" title="^RainTitle" line1label="{rainRateSummary}" line2label="{rainLast24HoursSummary}" line3label="{rainChanceSummary}" />
+				<button id="ForecastNavigationButton" label="^ForecastButtonLabel" action="command:weatherRequestForecast" navigation="show:WeeklyForecastPage" />
+				<textdisplay id="CurrentSource" title="^SourceTitle" line1label="{sourceSummary}" line2label="{sourceDetailSummary}" line3label="{tileStatus}" />
+			</controls>
+		</layout>
+		<layout id="WeeklyForecastPage" title="^WeeklyForecastPageTitle">
+			<controls>
+				<textdisplay id="ForecastSummary" title="^ForecastSummaryTitle" line1label="{forecastSummary}" />
+				<textdisplay id="ForecastDay1" title="{forecastDay1Title}" line1label="{forecastDay1}" />
+				<textdisplay id="ForecastDay2" title="{forecastDay2Title}" line1label="{forecastDay2}" />
+				<textdisplay id="ForecastDay3" title="{forecastDay3Title}" line1label="{forecastDay3}" />
+				<textdisplay id="ForecastDay4" title="{forecastDay4Title}" line1label="{forecastDay4}" />
+				<textdisplay id="ForecastDay5" title="{forecastDay5Title}" line1label="{forecastDay5}" />
+				<textdisplay id="ForecastDay6" title="{forecastDay6Title}" line1label="{forecastDay6}" />
+				<textdisplay id="ForecastDay7" title="{forecastDay7Title}" line1label="{forecastDay7}" />
+				<textdisplay id="ForecastUpdated" title="" line1label="{forecastUpdatedSummary}" />
+				<textdisplay id="ForecastAttribution" title="" line1label="{forecastAttributionLine1}" line2label="{forecastAttributionLine2}" />
+			</controls>
+		</layout>
+	</layouts>
+	<alerts/>
+</uidefinition>
