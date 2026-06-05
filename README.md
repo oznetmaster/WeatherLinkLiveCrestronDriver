@@ -1,6 +1,6 @@
 # WeatherLinkLiveCrestronDriver
 
-A **Crestron Home** extension driver that integrates a local **WeatherLink Live** device for current conditions and uses **OpenWeather** cloud data for forecast information and fallback current conditions when the local device is unavailable.
+A **Crestron Home** extension driver that integrates a local **WeatherLink Live™** device for current conditions and uses **OpenWeather** cloud data for forecast information and fallback current conditions when the local device is unavailable.
 
 [![License: MIT + Commons Clause](https://img.shields.io/badge/License-MIT%20%2B%20Commons%20Clause-blue.svg)](LICENSE)
 
@@ -12,7 +12,7 @@ This driver is a **Crestron Home weather-station extension driver** implemented 
 
 The driver uses a dual-source weather model:
 
-- **Local WeatherLink Live** for current conditions such as temperature, humidity, wind, pressure, and rainfall
+- **Local WeatherLink Live™** for current conditions such as temperature, humidity, wind, pressure, and rainfall
 - **OpenWeather** via `SimpleWeatherClient` for forecast data and cloud fallback current conditions
 
 The current-conditions path is designed to prefer the local WeatherLink Live device whenever it is available, while cloud data is used for forecast details and as a fallback when the local device cannot be reached.
@@ -126,6 +126,8 @@ MIT + Commons Clause © 2026 Neil Colvin — see [LICENSE](LICENSE).
 
 Free to use and modify. You may not sell the Software as a standalone product or sublicense it.
 Commercial system integration work (for example, a Crestron installer commissioning a customer system) is explicitly permitted, even where a fee is charged for that service.
+
+WeatherLink Live™ is a trademark of Davis Instruments.
 
 > **Note:** This project references [Crestron.DeviceDrivers.DevKit](https://www.nuget.org/packages/Crestron.DeviceDrivers.DevKit),
 > which is subject to Crestron's SDK license agreement. That license governs the SDK libraries only;

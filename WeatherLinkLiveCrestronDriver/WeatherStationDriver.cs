@@ -725,8 +725,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		if (localCurrent == null)
 			{
 			LogInformation (string.IsNullOrWhiteSpace (_weatherLinkLiveHost)
-				? "No WeatherLink Live host is configured; using cloud weather fallback."
-				: "WeatherLink Live is unavailable; using cloud weather fallback for this update.");
+				? "No WeatherLink Live™ host is configured; using cloud weather fallback."
+				: "WeatherLink Live™ is unavailable; using cloud weather fallback for this update.");
 			double latitude = SystemLocation.Latitude;
 			double longitude = SystemLocation.Longitude;
 			CloudWeatherSnapshot cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
@@ -802,8 +802,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			}
 
 		LogInformation (string.IsNullOrWhiteSpace (_weatherLinkLiveHost)
-			? "No WeatherLink Live host is configured; using cloud weather fallback."
-			: "WeatherLink Live is unavailable; using cloud weather fallback for this update.");
+			? "No WeatherLink Live™ host is configured; using cloud weather fallback."
+			: "WeatherLink Live™ is unavailable; using cloud weather fallback for this update.");
 
 		CloudWeatherSnapshot cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
 		WeatherSnapshot fallbackCurrent = BuildFallbackWeatherSnapshot (cloudWeather);
@@ -887,7 +887,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			ForecastUpdatedUtc = forecastUpdatedUtc,
 			SourceSummary = string.IsNullOrWhiteSpace (_weatherLinkLiveHost)
 				? "Source: Online weather service"
-				: "Source: Online weather service (WeatherLink Live unavailable)"
+				: "Source: Online weather service (WeatherLink Live™ unavailable)"
 			};
 		}
 
@@ -989,7 +989,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			{
 			_lastLocalCurrentAvailable = false;
 			_lastSourceSummary = "Source: Online weather service";
-			LogInformation ("WeatherLink Live host is blank; local weather is disabled.");
+			LogInformation ("WeatherLink Live™ host is blank; local weather is disabled.");
 			return null;
 			}
 
@@ -1001,7 +1001,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			await client.InitializeAsync (cancellationToken).ConfigureAwait (false);
 			DebugLog ("TryGetLocalCurrentWeatherAsync: InitializeAsync completed.");
 			_lastLocalCurrentAvailable = true;
-			_lastSourceSummary = "Source: WeatherLink Live + online forecast";
+			_lastSourceSummary = "Source: WeatherLink Live™ + online forecast";
 			DebugLog ("WeatherLink Live refresh succeeded.");
 			var snapshot = new WeatherSnapshot
 				{
@@ -1029,8 +1029,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			{
 			_lastStatus = ex.Message;
 			_lastLocalCurrentAvailable = false;
-			_lastSourceSummary = "Source: WeatherLink Live unavailable";
-			LogWarning ("WeatherLink Live refresh failed for host " + _weatherLinkLiveHost + ": " + ex);
+			_lastSourceSummary = "Source: WeatherLink Live™ unavailable";
+			LogWarning ("WeatherLink Live™ refresh failed for host " + _weatherLinkLiveHost + ": " + ex);
 			return null;
 			}
 		}

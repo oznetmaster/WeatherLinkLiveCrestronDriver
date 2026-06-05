@@ -5,10 +5,10 @@
     "Guid": "2bda31b1-1d61-4c2d-9d7a-ccecc9699495",
     "DeviceType": "Weather Station",
     "Manufacturer": "WeatherLink Live",
-    "BaseModel": "WeatherLink Live Weather Station",
+    "BaseModel": "WeatherLink Live™ Weather Station",
     "OtherSupportedModels": [],
     "SupportedSeries": [
-      "WeatherLink Live"
+      "WeatherLink Live™"
     ],
     "DependencyGroup": "",
     "Developer": {
@@ -18,15 +18,15 @@
       "Website": "",
       "PhoneNumber": ""
     },
-    "DriverVersion": "2.0.001.0000",
-    "VersionDate": "2026-06-05 15:40:04.046"
+    "DriverVersion": "2.0.002.0001",
+    "VersionDate": "2026-06-05 15:53:29.139"
   },
   "ConfigurationSteps": {
     "Items": [
       {
         "Id": "WeatherLinkLiveHost",
-        "Title": "WeatherLink Live Host",
-        "Description": "Optional. IP address or hostname of the local WeatherLink Live device. When unavailable, the driver falls back to cloud weather data.",
+        "Title": "WeatherLink Live™ Host",
+        "Description": "Optional. IP address or hostname of the local WeatherLink Live™ device. When unavailable, the driver falls back to cloud weather data.",
         "Required": false,
         "Persistent": true,
         "ValueType": "String"
