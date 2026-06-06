@@ -34,6 +34,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private const int DefaultRefreshIntervalSeconds = 300;
 	private const int WeatherLinkRefreshIntervalSeconds = 30;
 	private const int WeatherLinkForceRefreshIntervalSeconds = 120;
+	private const double WindySustainedThresholdMph = 15d;
+	private const double WindyGustThresholdMph = 20d;
+	private const double WindySustainedThresholdKph = 24d;
+	private const double WindyGustThresholdKph = 32d;
 	private static readonly TimeSpan MinimumOpenWeatherRefreshInterval = TimeSpan.FromMinutes (10);
 	private static readonly TimeSpan RequestInactivityWindow = TimeSpan.FromMinutes (1);
 
@@ -540,6 +544,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		int refreshInterval = GetInteger (values, "RefreshIntervalSeconds") ?? _refreshIntervalSeconds;
 
 		var errors = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
+		string configurationError = null;
 		if (string.IsNullOrWhiteSpace (openWeatherApiKey))
 			{
 			errors["OpenWeatherApiKey"] = "OpenWeather API Key is required.";
@@ -557,12 +562,16 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 		if (!HasValidLocation ())
 			{
-			errors["OpenWeatherApiKey"] = "Crestron Home system location is unavailable. Ensure the processor location is configured.";
+			configurationError = "Crestron Home system location is unavailable. Ensure the processor location is configured.";
 			}
 
-		if (errors.Count > 0)
+		if (errors.Count > 0 || !string.IsNullOrWhiteSpace (configurationError))
 			{
-			return new ConfigurationItemErrors (errors, "Correct the configuration values and retry.");
+			return new ConfigurationItemErrors (
+				errors,
+				!string.IsNullOrWhiteSpace (configurationError)
+					? configurationError
+					: "Correct the configuration values and retry.");
 			}
 
 		_weatherLinkLiveHost = weatherLinkLiveHost ?? string.Empty;
@@ -1461,7 +1470,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		return !string.IsNullOrWhiteSpace (main) ? main : weatherValue.ToString ();
 		}
 
-	private static string MapWeatherIcon (WeatherSnapshot current)
+	private string MapWeatherIcon (WeatherSnapshot current)
 		{
 		if (current == null)
 			{
@@ -1473,51 +1482,41 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			return MapCloudWeatherIcon (current.IconCode, current.Description);
 			}
 
-		string localIcon = MapLocalWeatherIcon (current);
-		return string.Equals (localIcon, "icClimateRegular", StringComparison.Ordinal)
-			? MapCloudWeatherIcon (current.CloudIconCode, current.CloudDescription)
-			: localIcon;
+		string localIcon = MapLocalWeatherIcon (current, UseMetricTemperatureUnits);
+		if (!string.Equals (localIcon, "icClimateRegular", StringComparison.Ordinal))
+			{
+			return localIcon;
+			}
+
+		return MapCloudWeatherIcon (current.CloudIconCode, current.CloudDescription);
 		}
 
-	private static string MapLocalWeatherIcon (WeatherSnapshot current)
+	private static string MapLocalWeatherIcon (WeatherSnapshot current, bool useMetricTemperatureUnits)
 		{
-		string localDescription = (current.Description ?? string.Empty).ToLowerInvariant ();
-		if (localDescription.Contains ("thunder") || localDescription.Contains ("storm"))
-			{
-			return "icQuickAction";
-			}
-
-		if (localDescription.Contains ("snow") || localDescription.Contains ("sleet") || localDescription.Contains ("ice") || localDescription.Contains ("hail"))
-			{
-			return "icCoolingRegular";
-			}
-
 		if (current.RainRate.HasValue && current.RainRate.Value > 0)
 			{
-			return "icHumidifying";
+			return IsBelowFreezing (current.Temperature, useMetricTemperatureUnits)
+				? "icCoolingRegular"
+				: "icHumidifying";
 			}
 
-		if (localDescription.Contains ("rain") || localDescription.Contains ("drizzle") || localDescription.Contains ("shower"))
-			{
-			return "icHumidifying";
-			}
-
-		if (localDescription.Contains ("wind") || localDescription.Contains ("breez") || localDescription.Contains ("gust"))
+		if (IsWindy (current, useMetricTemperatureUnits))
 			{
 			return "icFanOn";
 			}
 
-		if (localDescription.Contains ("cloud") || localDescription.Contains ("overcast") || localDescription.Contains ("fog") || localDescription.Contains ("mist") || localDescription.Contains ("haze") || localDescription.Contains ("smoke"))
-			{
-			return "icSmallSun";
-			}
-
-		if (localDescription.Contains ("clear") || localDescription.Contains ("sun"))
-			{
-			return "icSun";
-			}
-
 		return "icClimateRegular";
+		}
+
+	private static bool IsBelowFreezing (double? temperature, bool useMetricTemperatureUnits)
+	=> temperature.HasValue && temperature.Value < (useMetricTemperatureUnits ? 0d : 32d);
+
+	private static bool IsWindy (WeatherSnapshot current, bool useMetricTemperatureUnits)
+		{
+		double sustainedThreshold = useMetricTemperatureUnits ? WindySustainedThresholdKph : WindySustainedThresholdMph;
+		double gustThreshold = useMetricTemperatureUnits ? WindyGustThresholdKph : WindyGustThresholdMph;
+		return (current.WindSpeed.HasValue && current.WindSpeed.Value >= sustainedThreshold)
+			|| (current.WindGust.HasValue && current.WindGust.Value >= gustThreshold);
 		}
 
 	private static string MapCloudWeatherIcon (string iconCode, string description)
@@ -1545,7 +1544,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		if (string.IsNullOrWhiteSpace (description))
 			{
-			return "icClimateRegular";
+		return "icSmallSun";
 			}
 
 		string normalized = description.ToLowerInvariant ();
