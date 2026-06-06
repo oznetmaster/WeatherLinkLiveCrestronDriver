@@ -3,7 +3,7 @@
 	<version ver="2.0" />
 	<tile icon="{weatherIcon}" status="{tileDisplay}" secondaryicon="{weatherIcon}" navigation="show:CurrentConditionsPage" showinhomepage="#true" showinroompage="#true"/>
 	<layouts>
-		<layout id="CurrentConditionsPage" title="^CurrentConditionsPageTitle" isdefaultlayout="#true">
+		<layout id="CurrentConditionsPage" title="^CurrentConditionsPageTitle|{currentConditionsTitle}" isdefaultlayout="#true">
 			<controls>
 				<textdisplay id="CurrentTemperature" title="^CurrentTemperatureTitle" line1label="{currentTemperatureDisplay}" line2label="{humiditySummary}" line3label="{pressureSummary}" />
 				<textdisplay id="CurrentWind" title="^WindTitle" line1label="{windSummary}" line2label="{windDirectionSummary}" line3label="{windGustSummary}" />
@@ -12,7 +12,7 @@
 				<textdisplay id="CurrentSource" title="^SourceTitle" line1label="{sourceSummary}" line2label="{sourceDetailSummary}" line3label="{tileStatus}" />
 			</controls>
 		</layout>
-		<layout id="WeeklyForecastPage" title="^WeeklyForecastPageTitle">
+		<layout id="WeeklyForecastPage" title="^WeeklyForecastPageTitle|{weeklyForecastTitle}">
 			<controls>
 				<textdisplay id="ForecastSummary" title="^ForecastSummaryTitle" line1label="{forecastSummary}" />
 				<textdisplay id="ForecastDay1" title="{forecastDay1Title}" line1label="{forecastDay1}" />

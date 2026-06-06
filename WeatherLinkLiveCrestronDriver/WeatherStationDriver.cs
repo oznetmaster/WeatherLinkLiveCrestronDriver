@@ -55,8 +55,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private WeatherSnapshot _lastLocalWeatherSnapshot;
 	private string _weatherLinkLiveHost = string.Empty;
 	private string _openWeatherApiKey = string.Empty;
+	private string _locationNameOverride = string.Empty;
+	private double? _latitudeOverride;
+	private double? _longitudeOverride;
 	private string _units = "metric";
 	private int _refreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+	private string _pendingWeatherLinkLiveHost = string.Empty;
+	private string _pendingOpenWeatherApiKey = string.Empty;
+	private string _pendingLocationNameOverride = string.Empty;
+	private double? _pendingLatitudeOverride;
+	private double? _pendingLongitudeOverride;
+	private string _pendingUnits = "metric";
+	private int _pendingRefreshIntervalSeconds = DefaultRefreshIntervalSeconds;
 	private string _lastSourceSummary = "Source unavailable";
 	private string _lastStatus = "Waiting for configuration";
 	private string _lastRefreshPhase = "startup";
@@ -64,6 +74,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private bool _onlineIndicatorIsOnline;
 	private bool _readyIndicatorIsReady;
 	private string _deviceLabel;
+	private string _currentConditionsTitle;
+	private string _weeklyForecastTitle;
 	private string _currentTemperatureDisplay;
 	private string _tileDisplay;
 	private string _forecastSummary;
@@ -136,6 +148,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			}
 
 		_deviceLabel = "Weather";
+		_currentConditionsTitle = BuildCurrentConditionsTitle (null);
+		_weeklyForecastTitle = BuildWeeklyForecastTitle (null);
 		_currentTemperatureDisplay = "--";
 		_tileDisplay = "--";
 		_forecastSummary = "No forecast available";
@@ -196,6 +210,14 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	[EntityProperty (Id = "deviceLabel")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
 	public string DeviceLabel => _deviceLabel;
+
+	[EntityProperty (Id = "currentConditionsTitle")]
+	[EntityPropertyMetadata (ExtensionUiProperty = true)]
+	public string CurrentConditionsTitle => _currentConditionsTitle;
+
+	[EntityProperty (Id = "weeklyForecastTitle")]
+	[EntityPropertyMetadata (ExtensionUiProperty = true)]
+	public string WeeklyForecastTitle => _weeklyForecastTitle;
 
 	[EntityProperty (Id = "currentTemperatureDisplay")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
@@ -521,8 +543,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			StopRefreshLoop ();
 			_weatherLinkLiveHost = string.Empty;
 			_openWeatherApiKey = string.Empty;
+			_locationNameOverride = string.Empty;
+			_latitudeOverride = null;
+			_longitudeOverride = null;
 			_units = "metric";
 			_refreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+			_pendingWeatherLinkLiveHost = string.Empty;
+			_pendingOpenWeatherApiKey = string.Empty;
+			_pendingLocationNameOverride = string.Empty;
+			_pendingLatitudeOverride = null;
+			_pendingLongitudeOverride = null;
+			_pendingUnits = "metric";
+			_pendingRefreshIntervalSeconds = DefaultRefreshIntervalSeconds;
 			_lastLocalWeatherSnapshot = null;
 			lock (_cloudWeatherLock)
 				{
@@ -538,16 +570,43 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			return null;
 			}
 
-		string openWeatherApiKey = GetString (values, "OpenWeatherApiKey") ?? _openWeatherApiKey;
-		string weatherLinkLiveHost = GetString (values, "WeatherLinkLiveHost") ?? _weatherLinkLiveHost;
-		string units = NormalizeUnits (GetString (values, "Units") ?? _units);
-		int refreshInterval = GetInteger (values, "RefreshIntervalSeconds") ?? _refreshIntervalSeconds;
+		string openWeatherApiKey = GetString (values, "OpenWeatherApiKey") ?? _pendingOpenWeatherApiKey;
+		string weatherLinkLiveHost = GetString (values, "WeatherLinkLiveHost") ?? _pendingWeatherLinkLiveHost;
+		string locationNameOverride = GetString (values, "LocationNameOverride") ?? _pendingLocationNameOverride;
+		double? latitudeOverride = GetDouble (values, "LatitudeOverride") ?? _pendingLatitudeOverride;
+		double? longitudeOverride = GetDouble (values, "LongitudeOverride") ?? _pendingLongitudeOverride;
+		string units = NormalizeUnits (GetString (values, "Units") ?? _pendingUnits);
+		int refreshInterval = GetInteger (values, "RefreshIntervalSeconds") ?? _pendingRefreshIntervalSeconds;
+
+		_pendingWeatherLinkLiveHost = weatherLinkLiveHost ?? string.Empty;
+		_pendingOpenWeatherApiKey = openWeatherApiKey ?? string.Empty;
+		_pendingLocationNameOverride = locationNameOverride ?? string.Empty;
+		_pendingLatitudeOverride = latitudeOverride;
+		_pendingLongitudeOverride = longitudeOverride;
+		_pendingUnits = units ?? _pendingUnits;
+		_pendingRefreshIntervalSeconds = refreshInterval;
 
 		var errors = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase);
 		string configurationError = null;
 		if (string.IsNullOrWhiteSpace (openWeatherApiKey))
 			{
 			errors["OpenWeatherApiKey"] = "OpenWeather API Key is required.";
+			}
+
+		if (latitudeOverride.HasValue != longitudeOverride.HasValue)
+			{
+			errors["LatitudeOverride"] = "Latitude and longitude overrides must both be provided together.";
+			errors["LongitudeOverride"] = "Latitude and longitude overrides must both be provided together.";
+			}
+
+		if (latitudeOverride.HasValue && (latitudeOverride.Value < -90d || latitudeOverride.Value > 90d))
+			{
+			errors["LatitudeOverride"] = "Latitude override must be between -90 and 90.";
+			}
+
+		if (longitudeOverride.HasValue && (longitudeOverride.Value < -180d || longitudeOverride.Value > 180d))
+			{
+			errors["LongitudeOverride"] = "Longitude override must be between -180 and 180.";
 			}
 
 		if (units == null)
@@ -560,7 +619,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			errors["RefreshIntervalSeconds"] = "Refresh interval must be at least 60 seconds.";
 			}
 
-		if (!HasValidLocation ())
+		if (!latitudeOverride.HasValue && !longitudeOverride.HasValue && !HasValidSystemLocation ())
 			{
 			configurationError = "Crestron Home system location is unavailable. Ensure the processor location is configured.";
 			}
@@ -576,6 +635,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 		_weatherLinkLiveHost = weatherLinkLiveHost ?? string.Empty;
 		_openWeatherApiKey = openWeatherApiKey;
+		_locationNameOverride = locationNameOverride ?? string.Empty;
+		_latitudeOverride = latitudeOverride;
+		_longitudeOverride = longitudeOverride;
 		_units = units;
 		_refreshIntervalSeconds = refreshInterval;
 		_lastLocalWeatherSnapshot = null;
@@ -589,6 +651,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			_lastCurrentWeatherRequestUtc = DateTime.MinValue;
 			_lastForecastRequestUtc = DateTime.MinValue;
 			}
+		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (null));
+		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (null));
 		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
 		StartRefreshLoop ();
 		return null;
@@ -736,8 +800,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			LogInformation (string.IsNullOrWhiteSpace (_weatherLinkLiveHost)
 				? "No WeatherLink Live host is configured; using cloud weather fallback."
 				: "WeatherLink Live is unavailable; using cloud weather fallback for this update.");
-			double latitude = SystemLocation.Latitude;
-			double longitude = SystemLocation.Longitude;
+		(double latitude, double longitude) = GetEffectiveCoordinates ();
 			CloudWeatherSnapshot cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
 			WeatherSnapshot fallbackCurrent = BuildFallbackWeatherSnapshot (cloudWeather);
 			if (fallbackCurrent != null)
@@ -794,8 +857,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			}
 		DebugLog ("RefreshWeatherAsync: forecastRequested=" + forecastRequested + ", hostConfigured=" + !string.IsNullOrWhiteSpace (_weatherLinkLiveHost) + '.');
 
-		double latitude = SystemLocation.Latitude;
-		double longitude = SystemLocation.Longitude;
+		(double latitude, double longitude) = GetEffectiveCoordinates ();
 
 		WeatherSnapshot localCurrent = await TryGetLocalCurrentWeatherAsync (cancellationToken).ConfigureAwait (false);
 		if (localCurrent != null)
@@ -866,10 +928,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private WeatherSnapshot BuildFallbackWeatherSnapshot (CloudWeatherSnapshot cloudWeather)
 		{
-		return BuildFallbackWeatherSnapshot (cloudWeather?.Forecast, cloudWeather?.FetchedAtUtc, cloudWeather?.CurrentWeather);
+		return BuildFallbackWeatherSnapshot (cloudWeather?.Forecast, cloudWeather?.FetchedAtUtc, cloudWeather?.CurrentWeather, cloudWeather?.LocationName);
 		}
 
-	private WeatherSnapshot BuildFallbackWeatherSnapshot (WeatherForecast forecast, DateTime? forecastUpdatedUtc, CurrentWeather fallbackCurrent)
+	private WeatherSnapshot BuildFallbackWeatherSnapshot (WeatherForecast forecast, DateTime? forecastUpdatedUtc, CurrentWeather fallbackCurrent, string locationName)
 		{
 		if (fallbackCurrent == null)
 			{
@@ -892,6 +954,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			RainLast24Hours = null,
 			Description = description,
 			IconCode = icon,
+			LocationName = locationName,
 			Forecast = forecast,
 			ForecastUpdatedUtc = forecastUpdatedUtc,
 			SourceSummary = string.IsNullOrWhiteSpace (_weatherLinkLiveHost)
@@ -935,6 +998,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 		DebugLog ("GetRequestedCloudWeatherSnapshotAsync: requesting cloud forecast/current snapshot.");
 		using var weatherController = new WeatherController (_openWeatherApiKey);
+		var geoLocator = new GeoLocator (_openWeatherApiKey);
 		var coordinates = new LatLong
 			{
 			Latitude = latitude,
@@ -942,7 +1006,19 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			};
 		WeatherForecast forecast = await weatherController.GetWeatherForecastAsync (coordinates, OpenWeatherUnits, cancellationToken).ConfigureAwait (false);
 		CurrentWeather currentWeather = await weatherController.GetCurrentWeatherAsync (coordinates, OpenWeatherUnits, cancellationToken).ConfigureAwait (false);
-		var refreshedSnapshot = new CloudWeatherSnapshot (forecast, currentWeather, utcNow);
+		string locationName = currentWeather?.City;
+		if (string.IsNullOrWhiteSpace (locationName))
+			{
+			try
+				{
+				locationName = await geoLocator.GetCityNameByCoordinatesAsync (coordinates, cancellationToken).ConfigureAwait (false);
+				}
+			catch (Exception ex)
+				{
+				DebugLog ("GetRequestedCloudWeatherSnapshotAsync: location lookup failed - " + ex.Message);
+				}
+			}
+		var refreshedSnapshot = new CloudWeatherSnapshot (forecast, currentWeather, utcNow, locationName);
 
 		lock (_cloudWeatherLock)
 			{
@@ -1074,6 +1150,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			IconCode = currentSnapshot.IconCode,
 			CloudDescription = GetPrimaryWeatherDescription (cloudWeather.CurrentWeather?.Weather),
 			CloudIconCode = cloudWeather.CurrentWeather?.Weather?.Icon,
+			LocationName = currentSnapshot.LocationName ?? cloudWeather.LocationName,
 			Forecast = cloudWeather.Forecast,
 			ForecastUpdatedUtc = cloudWeather.FetchedAtUtc,
 			SourceSummary = currentSnapshot.SourceSummary,
@@ -1099,6 +1176,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		UpdateStringProperty ("tileDisplay", ref _tileDisplay, BuildTileDisplay (current));
 		UpdateStringProperty ("tileStatus", ref _tileStatus, refreshStatus ?? BuildUpdatedSummary ());
 		UpdateStringProperty ("weatherIcon", ref _weatherIcon, weatherIcon);
+		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (current.LocationName));
+		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (current.LocationName));
 		UpdateStringProperty ("sourceSummary", ref _sourceSummary, current.SourceSummary ?? _lastSourceSummary);
 		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
 		UpdateStringProperty ("humiditySummary", ref _humiditySummary, BuildHumiditySummary (current));
@@ -1341,6 +1420,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		UpdateStringProperty ("forecastSummary", ref _forecastSummary, "Forecast unavailable.");
 		UpdateStringProperty ("tileStatus", ref _tileStatus, status);
 		UpdateStringProperty ("weatherIcon", ref _weatherIcon, "icClimateRegular");
+		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (null));
+		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (null));
 		UpdateStringProperty ("sourceSummary", ref _sourceSummary, _lastSourceSummary);
 		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
 		UpdateStringProperty ("humiditySummary", ref _humiditySummary, "Humidity --");
@@ -1391,6 +1472,16 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		return int.TryParse (raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) ? parsed : null;
 		}
 
+	private static double? GetDouble (IDictionary<string, DriverEntityValue?> values, string key)
+		{
+		string raw = GetString (values, key);
+		if (string.IsNullOrWhiteSpace (raw))
+			{
+			return null;
+			}
+		return double.TryParse (raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double parsed) ? parsed : null;
+		}
+
 	private static string NormalizeUnits (string units)
 		{
 		if (string.IsNullOrWhiteSpace (units) || string.Equals (units, "Metric", StringComparison.OrdinalIgnoreCase) || string.Equals (units, "metric", StringComparison.OrdinalIgnoreCase))
@@ -1420,9 +1511,30 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private bool UseMetricForecastTemperatureUnits => string.Equals (OpenWeatherUnits, "metric", StringComparison.OrdinalIgnoreCase);
 
-	private static bool HasValidLocation () => !double.IsNaN (SystemLocation.Latitude) && !double.IsNaN (SystemLocation.Longitude) && (SystemLocation.Latitude != 0d || SystemLocation.Longitude != 0d);
+	private static bool HasValidSystemLocation () => !double.IsNaN (SystemLocation.Latitude) && !double.IsNaN (SystemLocation.Longitude) && (SystemLocation.Latitude != 0d || SystemLocation.Longitude != 0d);
 
-	private static string BuildLocationSummary () => string.Format (CultureInfo.InvariantCulture, "{0:0.0000}, {1:0.0000}", SystemLocation.Latitude, SystemLocation.Longitude);
+	private (double Latitude, double Longitude) GetEffectiveCoordinates ()
+	=> (_latitudeOverride ?? SystemLocation.Latitude, _longitudeOverride ?? SystemLocation.Longitude);
+
+	private string BuildLocationSummary ()
+		{
+		(double latitude, double longitude) = GetEffectiveCoordinates ();
+		return string.Format (CultureInfo.InvariantCulture, "{0:0.0000}, {1:0.0000}", latitude, longitude);
+		}
+
+	private string BuildCurrentConditionsTitle (string locationName)
+	=> !string.IsNullOrWhiteSpace (_locationNameOverride)
+		? _locationNameOverride
+		: !string.IsNullOrWhiteSpace (locationName)
+			? locationName
+			: BuildLocationSummary ();
+
+	private string BuildWeeklyForecastTitle (string locationName)
+	=> !string.IsNullOrWhiteSpace (_locationNameOverride)
+		? _locationNameOverride
+		: !string.IsNullOrWhiteSpace (locationName)
+			? locationName
+			: BuildLocationSummary ();
 
 	private string FormatTemperature (double? value)
 	=> FormatTemperature (value, UseMetricTemperatureUnits);
@@ -1479,7 +1591,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 		if (!current.IsLocalCurrent)
 			{
-			return MapCloudWeatherIcon (current.IconCode, current.Description);
+			return MapCloudWeatherIcon (current.IconCode, current.Description, suppressRain: false);
 			}
 
 		string localIcon = MapLocalWeatherIcon (current, UseMetricTemperatureUnits);
@@ -1488,7 +1600,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			return localIcon;
 			}
 
-		return MapCloudWeatherIcon (current.CloudIconCode, current.CloudDescription);
+		string cloudIcon = MapCloudWeatherIcon (current.CloudIconCode, current.CloudDescription, suppressRain: current.RainRate.HasValue && current.RainRate.Value <= 0);
+		return cloudIcon;
 		}
 
 	private static string MapLocalWeatherIcon (WeatherSnapshot current, bool useMetricTemperatureUnits)
@@ -1519,11 +1632,11 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			|| (current.WindGust.HasValue && current.WindGust.Value >= gustThreshold);
 		}
 
-	private static string MapCloudWeatherIcon (string iconCode, string description)
+	private static string MapCloudWeatherIcon (string iconCode, string description, bool suppressRain)
 		{
 		if (string.IsNullOrWhiteSpace (iconCode))
 			{
-			return MapWeatherDescriptionIcon (description);
+			return MapWeatherDescriptionIcon (description, suppressRain);
 			}
 
 		string normalized = iconCode.ToLowerInvariant ();
@@ -1531,16 +1644,16 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			return "icSun";
 		if (normalized.StartsWith ("02", StringComparison.Ordinal) || normalized.StartsWith ("03", StringComparison.Ordinal) || normalized.StartsWith ("04", StringComparison.Ordinal) || normalized.StartsWith ("50", StringComparison.Ordinal))
 			return "icSmallSun";
-		if (normalized.StartsWith ("09", StringComparison.Ordinal) || normalized.StartsWith ("10", StringComparison.Ordinal))
+		if (!suppressRain && (normalized.StartsWith ("09", StringComparison.Ordinal) || normalized.StartsWith ("10", StringComparison.Ordinal)))
 			return "icHumidifying";
 		if (normalized.StartsWith ("11", StringComparison.Ordinal))
 			return "icQuickAction";
 		if (normalized.StartsWith ("13", StringComparison.Ordinal))
 			return "icCoolingRegular";
-		return MapWeatherDescriptionIcon (description);
+		return MapWeatherDescriptionIcon (description, suppressRain);
 		}
 
-	private static string MapWeatherDescriptionIcon (string description)
+	private static string MapWeatherDescriptionIcon (string description, bool suppressRain)
 		{
 		if (string.IsNullOrWhiteSpace (description))
 			{
@@ -1553,7 +1666,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		if (normalized.Contains ("snow") || normalized.Contains ("sleet") || normalized.Contains ("ice") || normalized.Contains ("hail"))
 			return "icCoolingRegular";
 		if (normalized.Contains ("rain") || normalized.Contains ("drizzle") || normalized.Contains ("shower"))
-			return "icHumidifying";
+			return suppressRain ? "icSmallSun" : "icHumidifying";
 		if (normalized.Contains ("wind") || normalized.Contains ("breez") || normalized.Contains ("gust"))
 			return "icFanOn";
 		if (normalized.Contains ("fog") || normalized.Contains ("mist") || normalized.Contains ("haze") || normalized.Contains ("smoke") || normalized.Contains ("overcast") || normalized.Contains ("cloud"))
@@ -1627,11 +1740,12 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private sealed class CloudWeatherSnapshot
 		{
-		public CloudWeatherSnapshot (WeatherForecast forecast, CurrentWeather currentWeather, DateTime fetchedAtUtc)
+		public CloudWeatherSnapshot (WeatherForecast forecast, CurrentWeather currentWeather, DateTime fetchedAtUtc, string locationName)
 			{
 			Forecast = forecast;
 			CurrentWeather = currentWeather;
 			FetchedAtUtc = fetchedAtUtc;
+			LocationName = locationName;
 			}
 
 		public WeatherForecast Forecast
@@ -1643,6 +1757,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			get;
 			}
 		public DateTime FetchedAtUtc
+			{
+			get;
+			}
+		public string LocationName
 			{
 			get;
 			}
@@ -1699,6 +1817,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			get; set;
 			}
 		public string CloudIconCode
+			{
+			get; set;
+			}
+		public string LocationName
 			{
 			get; set;
 			}

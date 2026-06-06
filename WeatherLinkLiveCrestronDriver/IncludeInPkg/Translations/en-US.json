@@ -1,10 +1,10 @@
 {
-  "CurrentConditionsPageTitle": "Current Conditions",
+  "CurrentConditionsPageTitle": "Current Conditions for %s",
   "CurrentTemperatureTitle": "Temperature",
   "WindTitle": "Wind",
   "RainTitle": "Rain",
   "SourceTitle": "Source",
   "ForecastButtonLabel": "Next Week Forecast",
-  "WeeklyForecastPageTitle": "Weekly Forecast",
+  "WeeklyForecastPageTitle": "Weekly Forecast for %s",
   "ForecastSummaryTitle": "Forecast"
 }

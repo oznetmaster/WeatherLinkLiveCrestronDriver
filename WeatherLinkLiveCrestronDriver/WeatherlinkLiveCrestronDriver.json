@@ -18,8 +18,8 @@
       "Website": "",
       "PhoneNumber": ""
     },
-    "DriverVersion": "2.0.003.0000",
-    "VersionDate": "2026-06-06 05:46:31.581"
+    "DriverVersion": "2.0.007.0000",
+    "VersionDate": "2026-06-06 07:41:29.906"
   },
   "ConfigurationSteps": {
     "Items": [
@@ -35,7 +35,31 @@
         "Id": "OpenWeatherApiKey",
         "Title": "OpenWeather API Key",
         "Description": "API key used with SimpleWeatherClient for forecast data and fallback current conditions.",
-        "Required": true,
+        "Required": false,
+        "Persistent": true,
+        "ValueType": "String"
+      },
+      {
+        "Id": "LocationNameOverride",
+        "Title": "Location Name Override",
+        "Description": "Optional. When provided, this name is used in the current conditions title instead of the cloud-derived location name.",
+        "Required": false,
+        "Persistent": true,
+        "ValueType": "String"
+      },
+      {
+        "Id": "LatitudeOverride",
+        "Title": "Latitude Override",
+        "Description": "Optional. Leave blank to use the Crestron Home system latitude for cloud weather requests.",
+        "Required": false,
+        "Persistent": true,
+        "ValueType": "String"
+      },
+      {
+        "Id": "LongitudeOverride",
+        "Title": "Longitude Override",
+        "Description": "Optional. Leave blank to use the Crestron Home system longitude for cloud weather requests.",
+        "Required": false,
         "Persistent": true,
         "ValueType": "String"
       },
@@ -56,7 +80,7 @@
       {
         "Id": "RefreshIntervalSeconds",
         "Title": "Refresh Interval Seconds",
-        "Description": "How often the driver refreshes current conditions and forecast information.",
+        "Description": "How often the driver refreshes current conditions. Forecast/cloud refreshes follow their own startup, manual, and daily refresh rules.",
         "Required": false,
         "MinValue": 60,
         "MaxValue": 86400,
@@ -71,6 +95,9 @@
         "Items": [
           "WeatherLinkLiveHost",
           "OpenWeatherApiKey",
+          "LocationNameOverride",
+          "LatitudeOverride",
+          "LongitudeOverride",
           "Units",
           "RefreshIntervalSeconds"
         ],

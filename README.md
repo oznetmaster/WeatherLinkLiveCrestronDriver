@@ -28,8 +28,9 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 - Daily automatic cloud refresh after 00:01 local time
 - Forecast page command-driven refresh support from the extension UI
 - Metric, Imperial, and UK hybrid unit handling
+- Optional location name, latitude, and longitude overrides for cloud weather requests and title display
 - Crestron Home extension UI with current conditions page, tile summary, and weekly forecast page
-- Weather-condition to Crestron icon mapping for tile display
+- Weather-condition to Crestron icon mapping for tile display, with local numeric current-condition data preferred over cloud fallback when reliable
 
 ---
 
@@ -57,10 +58,22 @@ Preferred download source: use the attached `.pkg` file from the relevant GitHub
 |---|---|
 | WeatherLink Live Host | Optional. IP address or hostname of the local WeatherLink Live device |
 | OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions |
+| Location Name Override | Optional. Overrides the title location name shown on the current conditions page |
+| Latitude Override | Optional. Leave blank to use the Crestron Home system latitude for cloud weather requests |
+| Longitude Override | Optional. Leave blank to use the Crestron Home system longitude for cloud weather requests |
 | Units | `Metric`, `UK`, or `Imperial` |
-| Refresh Interval Seconds | Refresh interval for scheduled current-condition updates |
+| Refresh Interval Seconds | Refresh interval for scheduled current-condition updates; forecast/cloud refreshes follow their own startup, manual, and daily refresh rules |
 
 If a WeatherLink Live host is supplied, the driver prefers it for current conditions. If it is unavailable at a given refresh, the driver can fall back to cached/throttled cloud weather data.
+
+The current conditions and weekly forecast page title locations use the following priority order:
+
+1. **Location Name Override**
+2. City name returned by the OpenWeather current weather response
+3. Reverse-geocoded city name from the configured/effective coordinates
+4. Effective latitude/longitude text
+
+Latitude and longitude overrides are optional, but they must both be supplied together. When left blank, the driver uses the Crestron Home system location for cloud weather access.
 
 ---
 
@@ -70,6 +83,13 @@ If a WeatherLink Live host is supplied, the driver prefers it for current condit
 - **Scheduled updates:** current conditions refresh on the configured interval
 - **Forecast button:** the forecast page can request a cloud refresh when needed
 - **Cloud throttling:** normal cloud requests are limited to once every 10 minutes, except for the daily post-00:01 refresh trigger
+
+For tile icon selection, the driver prefers direct local numeric WeatherLink Live data whenever it is reliable:
+
+- local rain rate determines rain versus non-rain conditions
+- local rain rate combined with below-freezing temperature determines snow/freezing precipitation
+- local sustained wind and gust thresholds determine windy conditions
+- cloud weather icon/description is used as fallback only when local numeric data cannot determine the icon confidently
 
 ---
 
