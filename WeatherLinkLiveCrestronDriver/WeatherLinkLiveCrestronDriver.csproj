@@ -10,9 +10,21 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);ILLink1005;CS1591</NoWarn>
 		<Nullable>disable</Nullable>
+		<IsPackable>true</IsPackable>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+		<PackageId>WeatherLinkLiveCrestronDriver</PackageId>
+		<Authors>Neil Colvin</Authors>
+		<Company>Neil Colvin</Company>
 		<Description>Crestron Home Extension Driver V2 weather-station driver with WeatherLink Live local readings and SimpleWeatherClient fallback/forecast support.</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<RepositoryUrl>https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageProjectUrl>https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver</PackageProjectUrl>
+		<PackageTags>crestron;crestron-home;driver;weather;weatherlink-live;openweather;smarthome</PackageTags>
+		<PackageDriverPkgPath Condition="'$(PackageDriverPkgPath)' == ''"></PackageDriverPkgPath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -28,7 +40,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\LICENSE" Link="LICENSE" />
+		<None Include="..\README.md" Link="README.md" Pack="true" PackagePath="\" Visible="false" />
+		<None Include="..\LICENSE" Link="LICENSE" Pack="true" PackagePath="\" Visible="false" />
+		<None Include="$(PackageDriverPkgPath)" Pack="true" PackagePath="\" Visible="false" Condition="'$(PackageDriverPkgPath)' != ''" />
 		<None Include="IncludeInPkg\UiDefinitions\UiDefinition.xml" />
 		<None Include="IncludeInPkg\Translations\en-US.json" />
 		<None Include="BumpDriverVersion.ps1" />
@@ -95,6 +109,11 @@
 		</PropertyGroup>
 		<Message Text="Deploying $(AssemblyName).pkg to $(CrestronHomeIP)..." Importance="High" />
 		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(DeployScriptPath)&quot; -PkgFile &quot;$(PkgFile)&quot; -ProcessorIP &quot;$(CrestronHomeIP)&quot; -User &quot;$(CrestronHomeFtpUser)&quot; -Password &quot;$(CrestronHomeSftpPassword)&quot;" ContinueOnError="false" />
+	</Target>
+
+	<Target Name="ValidateNuGetPkgInput" BeforeTargets="GenerateNuspec" Condition="'$(IsPacking)' == 'true'">
+		<Error Condition="'$(PackageDriverPkgPath)' == ''" Text="PackageDriverPkgPath must be set when packing the NuGet package." />
+		<Error Condition="!Exists('$(PackageDriverPkgPath)')" Text="PackageDriverPkgPath '$(PackageDriverPkgPath)' does not exist." />
 	</Target>
 
 	<Import Project="WeatherLinkLiveCrestronDriver.Local.targets" Condition="Exists('WeatherLinkLiveCrestronDriver.Local.targets')" />
