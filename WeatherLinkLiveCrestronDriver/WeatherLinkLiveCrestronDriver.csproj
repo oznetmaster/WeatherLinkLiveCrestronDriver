@@ -13,8 +13,8 @@
 		<IsPackable>true</IsPackable>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-		<PackageType>CrestronDriver</PackageType>
-		<PackageId>WeatherLinkLiveCrestronDriver</PackageId>
+		<PackageType>CrestronHomeDriver</PackageType>
+		<PackageId>CrestronHomeDriver.WeatherLinkLive.WeatherStation</PackageId>
 		<Authors>Neil Colvin</Authors>
 		<Company>Neil Colvin</Company>
 		<Description>Crestron Home Extension Driver V2 weather-station driver with WeatherLink Live local readings and SimpleWeatherClient fallback/forecast support.</Description>

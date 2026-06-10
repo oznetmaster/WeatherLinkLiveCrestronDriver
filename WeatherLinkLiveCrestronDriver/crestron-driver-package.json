@@ -1,11 +1,11 @@
 {
   "standardVersion": "1.0",
-  "packageType": "CrestronDriver",
+  "packageType": "CrestronHomeDriver",
   "driverPlatform": "Crestron Home",
   "payloadType": "pkg",
   "payloadFile": "WeatherlinkLiveCrestronDriver.pkg",
   "containsManagedDllPayload": false,
-  "packageId": "WeatherLinkLiveCrestronDriver",
+  "packageId": "CrestronHomeDriver.WeatherLinkLive.WeatherStation",
   "packageVersion": "$packageVersion$",
   "displayName": "WeatherLink Live Weather Station Driver",
   "vendor": "WeatherLink Live",

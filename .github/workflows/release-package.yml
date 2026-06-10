@@ -144,12 +144,12 @@ jobs:
 
           $manifest = @{
             standardVersion = '1.0'
-            packageType = 'CrestronDriver'
+            packageType = 'CrestronHomeDriver'
             driverPlatform = 'Crestron Home'
             payloadType = 'pkg'
             payloadFile = [System.IO.Path]::GetFileName("${{ steps.package.outputs.pkg_path }}")
             containsManagedDllPayload = $false
-            packageId = 'WeatherLinkLiveCrestronDriver'
+            packageId = 'CrestronHomeDriver.WeatherLinkLive.WeatherStation'
             packageVersion = "${{ steps.package_version.outputs.value }}"
             displayName = 'WeatherLink Live Weather Station Driver'
             vendor = 'WeatherLink Live'

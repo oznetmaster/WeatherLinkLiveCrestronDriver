@@ -49,7 +49,9 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 
 Preferred download source: use the attached `.pkg` file from the relevant GitHub Release. The automatic GitHub `Source code (zip)` and `Source code (tar.gz)` assets are repository snapshots, not installable Crestron driver packages.
 
-NuGet package availability: this driver is also published as the `WeatherLinkLiveCrestronDriver` NuGet package. That NuGet package contains the same final `.pkg` artifact for scripted retrieval or package-feed distribution; it is not intended as a direct DLL reference package.
+NuGet package availability: this driver is also published as the `CrestronHomeDriver.WeatherLinkLive.WeatherStation` NuGet package. This NuGet package conforms to the **Crestron Home Driver NuGet Publishing Standard v1**. It is a distribution wrapper for the final `.pkg` artifact, includes the required `crestron-driver-package.json` manifest, and is not intended as a direct DLL reference package.
+
+Crestron Home Driver NuGet Publishing Standard v1 is **not** an official Crestron product or specification. It is an open source packaging standard created to facilitate community distribution and discovery of Crestron Home drivers through NuGet.
 
 1. Download the generated `.pkg` asset from the GitHub Release, or build it yourself using the instructions in [Building from Source](#building-from-source).
 2. Upload the `.pkg` file to your Crestron Home processor manually (for example via SFTP to `/user/ThirdPartyDrivers/Import`).
