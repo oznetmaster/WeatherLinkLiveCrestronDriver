@@ -71,44 +71,6 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private string _lastStatus = "Waiting for configuration";
 	private string _lastRefreshPhase = "startup";
 
-	private bool _onlineIndicatorIsOnline;
-	private bool _readyIndicatorIsReady;
-	private string _deviceLabel;
-	private string _currentConditionsTitle;
-	private string _weeklyForecastTitle;
-	private string _currentTemperatureDisplay;
-	private string _tileDisplay;
-	private string _forecastSummary;
-	private string _tileStatus;
-	private string _weatherIcon;
-	private string _sourceSummary;
-	private string _locationSummary;
-	private string _humiditySummary;
-	private string _pressureSummary;
-	private string _windSummary;
-	private string _windDirectionSummary;
-	private string _windGustSummary;
-	private string _rainRateSummary;
-	private string _rainLast24HoursSummary;
-	private string _rainChanceSummary;
-	private string _sourceDetailSummary;
-	private string _forecastDay1;
-	private string _forecastDay2;
-	private string _forecastDay3;
-	private string _forecastDay4;
-	private string _forecastDay5;
-	private string _forecastDay6;
-	private string _forecastDay7;
-	private string _forecastDay1Title;
-	private string _forecastDay2Title;
-	private string _forecastDay3Title;
-	private string _forecastDay4Title;
-	private string _forecastDay5Title;
-	private string _forecastDay6Title;
-	private string _forecastDay7Title;
-	private string _forecastAttributionLine1;
-	private string _forecastAttributionLine2;
-	private string _forecastUpdatedSummary;
 	private CloudWeatherSnapshot _cloudWeatherSnapshot;
 	private DateTime _lastCurrentWeatherRequestUtc;
 	private DateTime _lastForecastRequestUtc;
@@ -147,42 +109,42 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			LogWarning ("Failed to register extension UI command helpers: " + ex.Message);
 			}
 
-		_deviceLabel = "Weather";
-		_currentConditionsTitle = BuildCurrentConditionsTitle (null);
-		_weeklyForecastTitle = BuildWeeklyForecastTitle (null);
-		_currentTemperatureDisplay = "--";
-		_tileDisplay = "--";
-		_forecastSummary = "No forecast available";
-		_tileStatus = "Unavailable";
-		_weatherIcon = "icClimateCloudy";
-		_sourceSummary = _lastSourceSummary;
-		_locationSummary = BuildLocationSummary ();
-		_humiditySummary = "Humidity --";
-		_pressureSummary = "Pressure --";
-		_windSummary = "Speed --";
-		_windDirectionSummary = "Direction --";
-		_windGustSummary = "Gust --";
-		_rainRateSummary = "Rate --";
-		_rainLast24HoursSummary = "Last 24h --";
-		_rainChanceSummary = "Chance today --";
-		_sourceDetailSummary = string.Empty;
-		_forecastDay1 = string.Empty;
-		_forecastDay2 = string.Empty;
-		_forecastDay3 = string.Empty;
-		_forecastDay4 = string.Empty;
-		_forecastDay5 = string.Empty;
-		_forecastDay6 = string.Empty;
-		_forecastDay7 = string.Empty;
-		_forecastDay1Title = "Today";
-		_forecastDay2Title = string.Empty;
-		_forecastDay3Title = string.Empty;
-		_forecastDay4Title = string.Empty;
-		_forecastDay5Title = string.Empty;
-		_forecastDay6Title = string.Empty;
-		_forecastDay7Title = string.Empty;
-		_forecastAttributionLine1 = "Weather data provided by OpenWeather";
-		_forecastAttributionLine2 = "https://openweathermap.org/";
-		_forecastUpdatedSummary = "Forecast updated --";
+		DeviceLabel = "Weather";
+		CurrentConditionsTitle = BuildCurrentConditionsTitle (null);
+		WeeklyForecastTitle = BuildWeeklyForecastTitle (null);
+		CurrentTemperatureDisplay = "--";
+		TileDisplay = "--";
+		ForecastSummary = "No forecast available";
+		TileStatus = "Unavailable";
+		WeatherIcon = "icClimateCloudy";
+		SourceSummary = _lastSourceSummary;
+		LocationSummary = BuildLocationSummary ();
+		HumiditySummary = "Humidity --";
+		PressureSummary = "Pressure --";
+		WindSummary = "Speed --";
+		WindDirectionSummary = "Direction --";
+		WindGustSummary = "Gust --";
+		RainRateSummary = "Rate --";
+		RainLast24HoursSummary = "Last 24h --";
+		RainChanceSummary = "Chance today --";
+		SourceDetailSummary = string.Empty;
+		ForecastDay1 = string.Empty;
+		ForecastDay2 = string.Empty;
+		ForecastDay3 = string.Empty;
+		ForecastDay4 = string.Empty;
+		ForecastDay5 = string.Empty;
+		ForecastDay6 = string.Empty;
+		ForecastDay7 = string.Empty;
+		ForecastDay1Title = "Today";
+		ForecastDay2Title = string.Empty;
+		ForecastDay3Title = string.Empty;
+		ForecastDay4Title = string.Empty;
+		ForecastDay5Title = string.Empty;
+		ForecastDay6Title = string.Empty;
+		ForecastDay7Title = string.Empty;
+		ForecastAttributionLine1 = "Weather data provided by OpenWeather";
+		ForecastAttributionLine2 = "https://openweathermap.org/";
+		ForecastUpdatedSummary = "Forecast updated --";
 		TryPublishUiDefinition ();
 		}
 
@@ -192,8 +154,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _tileDisplay;
+			return field;
 			}
+		private set => SetAndNotify ("tileDisplay", value, ref field);
 		}
 
 	internal IDriverConfigurationController ConfigurationController
@@ -202,22 +165,42 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		}
 
 	[EntityProperty (Id = "onlineIndicator:isOnline")]
-	public bool OnlineIndicatorIsOnline => _onlineIndicatorIsOnline;
+	public bool OnlineIndicatorIsOnline
+		{
+		get;
+		private set => SetAndNotify ("onlineIndicator:isOnline", value, ref field);
+		}
 
 	[EntityProperty (Id = "readyIndicator:isReady")]
-	public bool ReadyIndicatorIsReady => _readyIndicatorIsReady;
+	public bool ReadyIndicatorIsReady
+		{
+		get;
+		private set => SetAndNotify ("readyIndicator:isReady", value, ref field);
+		}
 
 	[EntityProperty (Id = "deviceLabel")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
-	public string DeviceLabel => _deviceLabel;
+	public string DeviceLabel
+		{
+		get;
+		private set => SetAndNotify ("deviceLabel", value, ref field);
+		}
 
 	[EntityProperty (Id = "currentConditionsTitle")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
-	public string CurrentConditionsTitle => _currentConditionsTitle;
+	public string CurrentConditionsTitle
+		{
+		get;
+		private set => SetAndNotify ("currentConditionsTitle", value, ref field);
+		}
 
 	[EntityProperty (Id = "weeklyForecastTitle")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
-	public string WeeklyForecastTitle => _weeklyForecastTitle;
+	public string WeeklyForecastTitle
+		{
+		get;
+		private set => SetAndNotify ("weeklyForecastTitle", value, ref field);
+		}
 
 	[EntityProperty (Id = "currentTemperatureDisplay")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
@@ -225,8 +208,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _currentTemperatureDisplay;
+			return field;
 			}
+		private set => SetAndNotify ("currentTemperatureDisplay", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastUpdatedSummary")]
@@ -235,8 +219,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastUpdatedSummary;
+			return field;
 			}
+		private set => SetAndNotify ("forecastUpdatedSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastSummary")]
@@ -245,8 +230,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastSummary;
+			return field;
 			}
+		private set => SetAndNotify ("forecastSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "tileStatus")]
@@ -255,8 +241,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _tileStatus;
+			return field;
 			}
+		private set => SetAndNotify ("tileStatus", value, ref field);
 		}
 
 	[EntityProperty (Id = "weatherIcon")]
@@ -265,8 +252,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _weatherIcon;
+			return field;
 			}
+		private set => SetAndNotify ("weatherIcon", value, ref field);
 		}
 
 	[EntityProperty (Id = "sourceSummary")]
@@ -275,13 +263,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _sourceSummary;
+			return field;
 			}
+		private set => SetAndNotify ("sourceSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "locationSummary")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
-	public string LocationSummary => _locationSummary;
+	public string LocationSummary
+		{
+		get;
+		private set => SetAndNotify ("locationSummary", value, ref field);
+		}
 
 	[EntityProperty (Id = "humiditySummary")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
@@ -289,8 +282,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _humiditySummary;
+			return field;
 			}
+		private set => SetAndNotify ("humiditySummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "pressureSummary")]
@@ -299,8 +293,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _pressureSummary;
+			return field;
 			}
+		private set => SetAndNotify ("pressureSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "windSummary")]
@@ -309,8 +304,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _windSummary;
+			return field;
 			}
+		private set => SetAndNotify ("windSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "windDirectionSummary")]
@@ -319,8 +315,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _windDirectionSummary;
+			return field;
 			}
+		private set => SetAndNotify ("windDirectionSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "windGustSummary")]
@@ -329,8 +326,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _windGustSummary;
+			return field;
 			}
+		private set => SetAndNotify ("windGustSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "rainRateSummary")]
@@ -339,8 +337,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _rainRateSummary;
+			return field;
 			}
+		private set => SetAndNotify ("rainRateSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "rainLast24HoursSummary")]
@@ -349,13 +348,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _rainLast24HoursSummary;
+			return field;
 			}
+		private set => SetAndNotify ("rainLast24HoursSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "rainChanceSummary")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
-	public string RainChanceSummary => _rainChanceSummary;
+	public string RainChanceSummary
+		{
+		get;
+		private set => SetAndNotify ("rainChanceSummary", value, ref field);
+		}
 
 	[EntityProperty (Id = "sourceDetailSummary")]
 	[EntityPropertyMetadata (ExtensionUiProperty = true)]
@@ -363,8 +367,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _sourceDetailSummary;
+			return field;
 			}
+		private set => SetAndNotify ("sourceDetailSummary", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay1")]
@@ -373,8 +378,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay1;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay1", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay2")]
@@ -383,8 +389,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay2;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay2", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay3")]
@@ -393,8 +400,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay3;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay3", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay4")]
@@ -403,8 +411,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay4;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay4", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay5")]
@@ -413,8 +422,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay5;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay5", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay6")]
@@ -423,8 +433,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay6;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay6", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay7")]
@@ -433,8 +444,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay7;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay7", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay1Title")]
@@ -443,8 +455,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay1Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay1Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay2Title")]
@@ -453,8 +466,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay2Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay2Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay3Title")]
@@ -463,8 +477,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay3Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay3Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay4Title")]
@@ -473,8 +488,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay4Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay4Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay5Title")]
@@ -483,8 +499,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay5Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay5Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay6Title")]
@@ -493,8 +510,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay6Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay6Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastDay7Title")]
@@ -503,8 +521,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastDay7Title;
+			return field;
 			}
+		private set => SetAndNotify ("forecastDay7Title", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastAttributionLine1")]
@@ -513,8 +532,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastAttributionLine1;
+			return field;
 			}
+		private set => SetAndNotify ("forecastAttributionLine1", value, ref field);
 		}
 
 	[EntityProperty (Id = "forecastAttributionLine2")]
@@ -523,8 +543,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		get
 			{
-			return _forecastAttributionLine2;
+			return field;
 			}
+		private set => SetAndNotify ("forecastAttributionLine2", value, ref field);
 		}
 
 	public override void Dispose ()
@@ -651,9 +672,9 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			_lastCurrentWeatherRequestUtc = DateTime.MinValue;
 			_lastForecastRequestUtc = DateTime.MinValue;
 			}
-		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (null));
-		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (null));
-		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
+		CurrentConditionsTitle = BuildCurrentConditionsTitle (null);
+		WeeklyForecastTitle = BuildWeeklyForecastTitle (null);
+		LocationSummary = BuildLocationSummary ();
 		StartRefreshLoop ();
 		return null;
 		}
@@ -729,7 +750,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			catch (Exception ex)
 				{
 				_lastStatus = ex.Message;
-				if (!_readyIndicatorIsReady)
+				if (!ReadyIndicatorIsReady)
 					{
 					SetUnavailableState ("Weather refresh failed");
 					}
@@ -1172,51 +1193,51 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			current?.IconCode ?? "<null>",
 			current?.CloudDescription ?? "<null>",
 			current?.CloudIconCode ?? "<null>"));
-		UpdateStringProperty ("currentTemperatureDisplay", ref _currentTemperatureDisplay, FormatTemperature (current.Temperature));
-		UpdateStringProperty ("tileDisplay", ref _tileDisplay, BuildTileDisplay (current));
-		UpdateStringProperty ("tileStatus", ref _tileStatus, refreshStatus ?? BuildUpdatedSummary ());
-		UpdateStringProperty ("weatherIcon", ref _weatherIcon, weatherIcon);
-		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (current.LocationName));
-		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (current.LocationName));
-		UpdateStringProperty ("sourceSummary", ref _sourceSummary, current.SourceSummary ?? _lastSourceSummary);
-		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
-		UpdateStringProperty ("humiditySummary", ref _humiditySummary, BuildHumiditySummary (current));
-		UpdateStringProperty ("pressureSummary", ref _pressureSummary, BuildPressureSummary (current, UseMetricBarometerUnits));
-		UpdateStringProperty ("windSummary", ref _windSummary, BuildWindSummary (current, UseMetricWindUnits));
-		UpdateStringProperty ("windDirectionSummary", ref _windDirectionSummary, BuildWindDirectionSummary (current));
-		UpdateStringProperty ("windGustSummary", ref _windGustSummary, BuildWindGustSummary (current, UseMetricWindUnits));
-		UpdateStringProperty ("rainRateSummary", ref _rainRateSummary, BuildRainRateSummary (current, UseMetricRainUnits));
-		UpdateStringProperty ("rainLast24HoursSummary", ref _rainLast24HoursSummary, BuildRainLast24HoursSummary (current, UseMetricRainUnits));
-		UpdateStringProperty ("sourceDetailSummary", ref _sourceDetailSummary, BuildSourceDetailSummary (refreshStatus));
+		CurrentTemperatureDisplay = FormatTemperature (current.Temperature);
+		TileDisplay = BuildTileDisplay (current);
+		TileStatus = refreshStatus ?? BuildUpdatedSummary ();
+		WeatherIcon = weatherIcon;
+		CurrentConditionsTitle = BuildCurrentConditionsTitle (current.LocationName);
+		WeeklyForecastTitle = BuildWeeklyForecastTitle (current.LocationName);
+		SourceSummary = current.SourceSummary ?? _lastSourceSummary;
+		LocationSummary = BuildLocationSummary ();
+		HumiditySummary = BuildHumiditySummary (current);
+		PressureSummary = BuildPressureSummary (current, UseMetricBarometerUnits);
+		WindSummary = BuildWindSummary (current, UseMetricWindUnits);
+		WindDirectionSummary = BuildWindDirectionSummary (current);
+		WindGustSummary = BuildWindGustSummary (current, UseMetricWindUnits);
+		RainRateSummary = BuildRainRateSummary (current, UseMetricRainUnits);
+		RainLast24HoursSummary = BuildRainLast24HoursSummary (current, UseMetricRainUnits);
+		SourceDetailSummary = BuildSourceDetailSummary (refreshStatus);
 		if (current.Forecast != null)
 			{
-			UpdateStringProperty ("forecastSummary", ref _forecastSummary, BuildForecastSummary (current.Forecast));
-			UpdateStringProperty ("rainChanceSummary", ref _rainChanceSummary, BuildRainChanceSummary (current.Forecast));
-			UpdateStringProperty ("forecastUpdatedSummary", ref _forecastUpdatedSummary, BuildForecastUpdatedSummary (current.ForecastUpdatedUtc ?? DateTime.UtcNow));
+			ForecastSummary = BuildForecastSummary (current.Forecast);
+			RainChanceSummary = BuildRainChanceSummary (current.Forecast);
+			ForecastUpdatedSummary = BuildForecastUpdatedSummary (current.ForecastUpdatedUtc ?? DateTime.UtcNow);
 			ApplyForecastDays (current.Forecast);
 			}
-		UpdateBooleanProperty ("onlineIndicator:isOnline", ref _onlineIndicatorIsOnline, true);
-		UpdateBooleanProperty ("readyIndicator:isReady", ref _readyIndicatorIsReady, true);
+		OnlineIndicatorIsOnline = true;
+		ReadyIndicatorIsReady = true;
 		TryPublishUiDefinition ();
 		}
 
 	private void ApplyForecastDays (WeatherForecast forecast)
 		{
 		IReadOnlyList<Daily> days = forecast?.Daily != null ? forecast.Daily : (IReadOnlyList<Daily>)Array.Empty<Daily> ();
-		UpdateStringProperty ("forecastDay1Title", ref _forecastDay1Title, BuildForecastDayTitle (days, 0));
-		UpdateStringProperty ("forecastDay2Title", ref _forecastDay2Title, BuildForecastDayTitle (days, 1));
-		UpdateStringProperty ("forecastDay3Title", ref _forecastDay3Title, BuildForecastDayTitle (days, 2));
-		UpdateStringProperty ("forecastDay4Title", ref _forecastDay4Title, BuildForecastDayTitle (days, 3));
-		UpdateStringProperty ("forecastDay5Title", ref _forecastDay5Title, BuildForecastDayTitle (days, 4));
-		UpdateStringProperty ("forecastDay6Title", ref _forecastDay6Title, BuildForecastDayTitle (days, 5));
-		UpdateStringProperty ("forecastDay7Title", ref _forecastDay7Title, BuildForecastDayTitle (days, 6));
-		UpdateStringProperty ("forecastDay1", ref _forecastDay1, FormatForecastDay (days, 0));
-		UpdateStringProperty ("forecastDay2", ref _forecastDay2, FormatForecastDay (days, 1));
-		UpdateStringProperty ("forecastDay3", ref _forecastDay3, FormatForecastDay (days, 2));
-		UpdateStringProperty ("forecastDay4", ref _forecastDay4, FormatForecastDay (days, 3));
-		UpdateStringProperty ("forecastDay5", ref _forecastDay5, FormatForecastDay (days, 4));
-		UpdateStringProperty ("forecastDay6", ref _forecastDay6, FormatForecastDay (days, 5));
-		UpdateStringProperty ("forecastDay7", ref _forecastDay7, FormatForecastDay (days, 6));
+		ForecastDay1Title = BuildForecastDayTitle (days, 0);
+		ForecastDay2Title = BuildForecastDayTitle (days, 1);
+		ForecastDay3Title = BuildForecastDayTitle (days, 2);
+		ForecastDay4Title = BuildForecastDayTitle (days, 3);
+		ForecastDay5Title = BuildForecastDayTitle (days, 4);
+		ForecastDay6Title = BuildForecastDayTitle (days, 5);
+		ForecastDay7Title = BuildForecastDayTitle (days, 6);
+		ForecastDay1 = FormatForecastDay (days, 0);
+		ForecastDay2 = FormatForecastDay (days, 1);
+		ForecastDay3 = FormatForecastDay (days, 2);
+		ForecastDay4 = FormatForecastDay (days, 3);
+		ForecastDay5 = FormatForecastDay (days, 4);
+		ForecastDay6 = FormatForecastDay (days, 5);
+		ForecastDay7 = FormatForecastDay (days, 6);
 		}
 
 	private static string BuildHumiditySummary (WeatherSnapshot current)
@@ -1416,40 +1437,40 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private void SetUnavailableState (string status)
 		{
-		UpdateStringProperty ("currentTemperatureDisplay", ref _currentTemperatureDisplay, "--");
-		UpdateStringProperty ("forecastSummary", ref _forecastSummary, "Forecast unavailable.");
-		UpdateStringProperty ("tileStatus", ref _tileStatus, status);
-		UpdateStringProperty ("weatherIcon", ref _weatherIcon, "icClimateRegular");
-		UpdateStringProperty ("currentConditionsTitle", ref _currentConditionsTitle, BuildCurrentConditionsTitle (null));
-		UpdateStringProperty ("weeklyForecastTitle", ref _weeklyForecastTitle, BuildWeeklyForecastTitle (null));
-		UpdateStringProperty ("sourceSummary", ref _sourceSummary, _lastSourceSummary);
-		UpdateStringProperty ("locationSummary", ref _locationSummary, BuildLocationSummary ());
-		UpdateStringProperty ("humiditySummary", ref _humiditySummary, "Humidity --");
-		UpdateStringProperty ("pressureSummary", ref _pressureSummary, "Pressure --");
-		UpdateStringProperty ("windSummary", ref _windSummary, "Speed --");
-		UpdateStringProperty ("windDirectionSummary", ref _windDirectionSummary, "Direction --");
-		UpdateStringProperty ("windGustSummary", ref _windGustSummary, "Gust --");
-		UpdateStringProperty ("rainRateSummary", ref _rainRateSummary, "Rate --");
-		UpdateStringProperty ("rainLast24HoursSummary", ref _rainLast24HoursSummary, "Last 24h --");
-		UpdateStringProperty ("rainChanceSummary", ref _rainChanceSummary, "Chance today --");
-		UpdateStringProperty ("sourceDetailSummary", ref _sourceDetailSummary, string.Empty);
-		UpdateStringProperty ("forecastDay1", ref _forecastDay1, string.Empty);
-		UpdateStringProperty ("forecastDay2", ref _forecastDay2, string.Empty);
-		UpdateStringProperty ("forecastDay3", ref _forecastDay3, string.Empty);
-		UpdateStringProperty ("forecastDay4", ref _forecastDay4, string.Empty);
-		UpdateStringProperty ("forecastDay5", ref _forecastDay5, string.Empty);
-		UpdateStringProperty ("forecastDay6", ref _forecastDay6, string.Empty);
-		UpdateStringProperty ("forecastDay7", ref _forecastDay7, string.Empty);
-		UpdateStringProperty ("forecastUpdatedSummary", ref _forecastUpdatedSummary, "Forecast updated --");
-		UpdateStringProperty ("forecastDay1Title", ref _forecastDay1Title, "Today");
-		UpdateStringProperty ("forecastDay2Title", ref _forecastDay2Title, string.Empty);
-		UpdateStringProperty ("forecastDay3Title", ref _forecastDay3Title, string.Empty);
-		UpdateStringProperty ("forecastDay4Title", ref _forecastDay4Title, string.Empty);
-		UpdateStringProperty ("forecastDay5Title", ref _forecastDay5Title, string.Empty);
-		UpdateStringProperty ("forecastDay6Title", ref _forecastDay6Title, string.Empty);
-		UpdateStringProperty ("forecastDay7Title", ref _forecastDay7Title, string.Empty);
-		UpdateBooleanProperty ("onlineIndicator:isOnline", ref _onlineIndicatorIsOnline, true);
-		UpdateBooleanProperty ("readyIndicator:isReady", ref _readyIndicatorIsReady, true);
+		CurrentTemperatureDisplay = "--";
+		ForecastSummary = "Forecast unavailable.";
+		TileStatus = status;
+		WeatherIcon = "icClimateRegular";
+		CurrentConditionsTitle = BuildCurrentConditionsTitle (null);
+		WeeklyForecastTitle = BuildWeeklyForecastTitle (null);
+		SourceSummary = _lastSourceSummary;
+		LocationSummary = BuildLocationSummary ();
+		HumiditySummary = "Humidity --";
+		PressureSummary = "Pressure --";
+		WindSummary = "Speed --";
+		WindDirectionSummary = "Direction --";
+		WindGustSummary = "Gust --";
+		RainRateSummary = "Rate --";
+		RainLast24HoursSummary = "Last 24h --";
+		RainChanceSummary = "Chance today --";
+		SourceDetailSummary = string.Empty;
+		ForecastDay1 = string.Empty;
+		ForecastDay2 = string.Empty;
+		ForecastDay3 = string.Empty;
+		ForecastDay4 = string.Empty;
+		ForecastDay5 = string.Empty;
+		ForecastDay6 = string.Empty;
+		ForecastDay7 = string.Empty;
+		ForecastUpdatedSummary = "Forecast updated --";
+		ForecastDay1Title = "Today";
+		ForecastDay2Title = string.Empty;
+		ForecastDay3Title = string.Empty;
+		ForecastDay4Title = string.Empty;
+		ForecastDay5Title = string.Empty;
+		ForecastDay6Title = string.Empty;
+		ForecastDay7Title = string.Empty;
+		OnlineIndicatorIsOnline = true;
+		ReadyIndicatorIsReady = true;
 		TryPublishUiDefinition ();
 		}
 
@@ -1690,7 +1711,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			}
 		}
 
-	private void UpdateStringProperty (string propertyId, ref string backingField, string value)
+	private void SetAndNotify (string propertyId, string value, ref string backingField)
 		{
 		value ??= string.Empty;
 		string previousValue;
@@ -1699,18 +1720,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			previousValue = backingField;
 			if (string.Equals (backingField, value, StringComparison.Ordinal))
 				{
-				DebugLog ("UpdateStringProperty: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", unchanged value=" + value + '.');
+				DebugLog ("SetAndNotify: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", unchanged value=" + value + '.');
 				return;
 				}
 
 			backingField = value;
 			}
 
-		DebugLog ("UpdateStringProperty: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", old=" + previousValue + ", new=" + value + '.');
+		DebugLog ("SetAndNotify: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", old=" + previousValue + ", new=" + value + '.');
 		NotifyPropertyChanged (propertyId, new DriverEntityValue (value));
 		}
 
-	private void UpdateBooleanProperty (string propertyId, ref bool backingField, bool value)
+	private void SetAndNotify (string propertyId, bool value, ref bool backingField)
 		{
 		bool previousValue;
 		lock (_stateLock)
@@ -1718,14 +1739,14 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			previousValue = backingField;
 			if (backingField == value)
 				{
-				DebugLog ("UpdateBooleanProperty: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", unchanged value=" + value + '.');
+				DebugLog ("SetAndNotify: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", unchanged value=" + value + '.');
 				return;
 				}
 
 			backingField = value;
 			}
 
-		DebugLog ("UpdateBooleanProperty: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", old=" + previousValue + ", new=" + value + '.');
+		DebugLog ("SetAndNotify: phase=" + _lastRefreshPhase + ", property=" + propertyId + ", old=" + previousValue + ", new=" + value + '.');
 		NotifyPropertyChanged (propertyId, new DriverEntityValue (value));
 		}
 
