@@ -47,7 +47,9 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 
 ## Installation
 
-Preferred download source: use the attached `.pkg` file from the relevant GitHub Release. The automatic GitHub `Source code (zip)` and `Source code (tar.gz)` assets are repository snapshots, not installable Crestron driver packages.
+The best way to download and install this driver on a Crestron Home system is to use the [Crestron Home Driver Feed Installer](https://github.com/oznetmaster/Crestron-Home-Driver-Feed-Installer) repository and application.
+
+If you prefer to install manually, use the attached `.pkg` asset from the relevant GitHub Release. The automatic GitHub `Source code (zip)` and `Source code (tar.gz)` assets are repository snapshots, not installable Crestron driver packages.
 
 NuGet package availability: this driver is also published as the `CrestronHomeDriver.WeatherLinkLive.WeatherStation` NuGet package. This NuGet package conforms to the **Crestron Home Driver NuGet Publishing Standard v1**. It is a distribution wrapper for the final `.pkg` artifact, includes the required `crestron-driver-package.json` manifest, and is not intended as a direct DLL reference package.
 
@@ -133,8 +135,6 @@ Typical release flow:
 1. Push the release commit and tag
 2. Publish the GitHub Release for that tag
 3. Let the workflow build and attach the `.pkg` asset automatically
-
-For end users, GitHub Releases are the preferred download point: download the attached `.pkg` asset, not the automatic source archive assets.
 
 ---
 
