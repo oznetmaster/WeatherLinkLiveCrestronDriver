@@ -2,6 +2,8 @@
 
 A **Crestron Home** extension driver that integrates a local **WeatherLink Live™** device for current conditions and uses **OpenWeather** cloud data for forecast information and fallback current conditions when the local device is unavailable.
 
+Crestron and Crestron Home are trademarks or registered trademarks of Crestron Electronics, Inc. This project is not affiliated with, endorsed by, or sponsored by Crestron Electronics, Inc.
+
 [![License: MIT + Commons Clause](https://img.shields.io/badge/License-MIT%20%2B%20Commons%20Clause-blue.svg)](LICENSE)
 
 ---
