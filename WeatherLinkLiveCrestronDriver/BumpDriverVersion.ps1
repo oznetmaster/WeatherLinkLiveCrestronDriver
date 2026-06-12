@@ -21,11 +21,11 @@ $minor = $match.Groups['minor'].Value
 $release = [int]$match.Groups['release'].Value
 $build = [int]$match.Groups['build'].Value
 
-switch ($Configuration) {
-	'Debug' {
-		$newVersion = '{0}.{1}.{2}.{3}' -f $major, $minor, $release.ToString('000'), ($build + 1).ToString('0000')
-	}
-	'Release' {
+	switch ($Configuration) {
+		'Debug' {
+			$newVersion = '{0}.{1}.{2}.{3}' -f $major, $minor, $release.ToString('000'), ($build + 1).ToString('0000')
+		}
+		'Release' {
 		$newVersion = '{0}.{1}.{2}.0000' -f $major, $minor, ($release + 1).ToString('000')
 	}
 	default {

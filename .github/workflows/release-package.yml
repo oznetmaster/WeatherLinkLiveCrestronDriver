@@ -105,6 +105,24 @@ jobs:
         id: package_version
         shell: pwsh
         run: |
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE 'WeatherLinkLiveCrestronDriver\WeatherlinkLiveCrestronDriver.json'
+          if (-not (Test-Path $manifestPath)) {
+            throw "Driver manifest was not found at '$manifestPath'."
+          }
+
+          $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+          $driverVersion = $manifest.GeneralInformation.DriverVersion
+          if ([string]::IsNullOrWhiteSpace($driverVersion)) {
+            throw 'DriverVersion is missing from the driver manifest.'
+          }
+
+          $match = [regex]::Match($driverVersion, '^(?<major>\d+)\.(?<minor>\d+)\.(?<release>\d+)\.(?<build>\d+)$')
+          if (-not $match.Success) {
+            throw "DriverVersion '$driverVersion' does not contain four numeric components."
+          }
+
+          $packageVersion = '{0}.{1}.{2}' -f $match.Groups['major'].Value, $match.Groups['minor'].Value, ([int]$match.Groups['release'].Value)
+
           $refName = if ($env:GITHUB_EVENT_NAME -eq 'release' -and $env:GITHUB_EVENT_PATH) {
             $event = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
             $event.release.tag_name
@@ -113,13 +131,11 @@ jobs:
             $env:GITHUB_REF_NAME
           }
 
-          if ([string]::IsNullOrWhiteSpace($refName)) {
-            throw 'Unable to determine package version from the GitHub ref or release payload.'
-          }
-
-          $packageVersion = $refName.TrimStart('v', 'V')
-          if ([string]::IsNullOrWhiteSpace($packageVersion)) {
-            throw "Resolved package version is empty for ref '$refName'."
+          if (-not [string]::IsNullOrWhiteSpace($refName)) {
+            $tagVersion = $refName.TrimStart('v', 'V')
+            if ($tagVersion -match '^\d+\.\d+\.\d+$' -and $tagVersion -ne $packageVersion) {
+              throw "GitHub tag version '$tagVersion' does not match manifest release version '$packageVersion' derived from DriverVersion '$driverVersion'."
+            }
           }
 
           "value=$packageVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
