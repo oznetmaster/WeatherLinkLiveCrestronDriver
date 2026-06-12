@@ -27,6 +27,7 @@
 		<PackageTags>crestron;crestron-home;driver;pkg;weather;weatherlink-live;openweather;smarthome</PackageTags>
 		<PackageDriverPkgPath Condition="'$(PackageDriverPkgPath)' == ''"></PackageDriverPkgPath>
 		<PackageDriverManifestPath Condition="'$(PackageDriverManifestPath)' == ''"></PackageDriverManifestPath>
+		<TreatWarningsAsErrors Condition="'$(Configuration)' == 'Debug'">true</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>

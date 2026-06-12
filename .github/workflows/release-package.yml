@@ -96,12 +96,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore WeatherLinkLiveCrestronDriver.slnx
 
-      - name: Build release package
-        shell: pwsh
-        run: |
-          dotnet build WeatherLinkLiveCrestronDriver.slnx -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false
-
-      - name: Determine NuGet package version
+      - name: Determine release version
         id: package_version
         shell: pwsh
         run: |
@@ -121,7 +116,7 @@ jobs:
             throw "DriverVersion '$driverVersion' does not contain four numeric components."
           }
 
-          $packageVersion = '{0}.{1}.{2}' -f $match.Groups['major'].Value, $match.Groups['minor'].Value, ([int]$match.Groups['release'].Value)
+          $releaseVersion = '{0}.{1}.{2}' -f $match.Groups['major'].Value, $match.Groups['minor'].Value, ([int]$match.Groups['release'].Value + 1)
 
           $refName = if ($env:GITHUB_EVENT_NAME -eq 'release' -and $env:GITHUB_EVENT_PATH) {
             $event = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
@@ -133,12 +128,17 @@ jobs:
 
           if (-not [string]::IsNullOrWhiteSpace($refName)) {
             $tagVersion = $refName.TrimStart('v', 'V')
-            if ($tagVersion -match '^\d+\.\d+\.\d+$' -and $tagVersion -ne $packageVersion) {
-              throw "GitHub tag version '$tagVersion' does not match manifest release version '$packageVersion' derived from DriverVersion '$driverVersion'."
+            if ($tagVersion -match '^\d+\.\d+\.\d+$' -and $tagVersion -ne $releaseVersion) {
+              throw "GitHub tag version '$tagVersion' does not match expected Release version '$releaseVersion' derived from pre-build DriverVersion '$driverVersion'."
             }
           }
 
-          "value=$packageVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "value=$releaseVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Build release package
+        shell: pwsh
+        run: |
+          dotnet build WeatherLinkLiveCrestronDriver.slnx -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false
 
       - name: Locate package
         id: package

@@ -30,14 +30,14 @@ namespace WeatherlinkLive.CrestronDriver;
 /// </summary>
 public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	{
-	private const int MinimumRefreshIntervalSeconds = 60;
-	private const int DefaultRefreshIntervalSeconds = 300;
-	private const int WeatherLinkRefreshIntervalSeconds = 30;
-	private const int WeatherLinkForceRefreshIntervalSeconds = 120;
-	private const double WindySustainedThresholdMph = 15d;
-	private const double WindyGustThresholdMph = 20d;
-	private const double WindySustainedThresholdKph = 24d;
-	private const double WindyGustThresholdKph = 32d;
+	private const int MINIMUM_REFRESH_INTERVAL_SECONDS = 60;
+	private const int DEFAULT_REFRESH_INTERVAL_SECONDS = 300;
+	private const int WEATHERLINK_REFRESH_INTERVAL_SECONDS = 30;
+	private const int WEATHERLINK_FORCE_REFRESH_INTERVAL_SECONDS = 120;
+	private const double WINDY_SUSTAINED_THRESHOLD_MPH = 15d;
+	private const double WINDY_GUST_THRESHOLD_MPH = 20d;
+	private const double WINDY_SUSTAINED_THRESHOLD_KPH = 24d;
+	private const double WINDY_GUST_THRESHOLD_KPH = 32d;
 	private static readonly TimeSpan MinimumOpenWeatherRefreshInterval = TimeSpan.FromMinutes (10);
 	private static readonly TimeSpan RequestInactivityWindow = TimeSpan.FromMinutes (1);
 
@@ -50,7 +50,6 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private CancellationTokenSource _refreshCancellationTokenSource;
 	private int _refreshInProgress;
-	private bool _queuedOnDemandRefresh;
 	private bool? _lastLocalCurrentAvailable;
 	private WeatherSnapshot _lastLocalWeatherSnapshot;
 	private string _weatherLinkLiveHost = string.Empty;
@@ -59,14 +58,14 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private double? _latitudeOverride;
 	private double? _longitudeOverride;
 	private string _units = "metric";
-	private int _refreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+	private int _refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SECONDS;
 	private string _pendingWeatherLinkLiveHost = string.Empty;
 	private string _pendingOpenWeatherApiKey = string.Empty;
 	private string _pendingLocationNameOverride = string.Empty;
 	private double? _pendingLatitudeOverride;
 	private double? _pendingLongitudeOverride;
 	private string _pendingUnits = "metric";
-	private int _pendingRefreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+	private int _pendingRefreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SECONDS;
 	private string _lastSourceSummary = "Source unavailable";
 	private string _lastStatus = "Waiting for configuration";
 	private string _lastRefreshPhase = "startup";
@@ -568,14 +567,14 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			_latitudeOverride = null;
 			_longitudeOverride = null;
 			_units = "metric";
-			_refreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+			_refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SECONDS;
 			_pendingWeatherLinkLiveHost = string.Empty;
 			_pendingOpenWeatherApiKey = string.Empty;
 			_pendingLocationNameOverride = string.Empty;
 			_pendingLatitudeOverride = null;
 			_pendingLongitudeOverride = null;
 			_pendingUnits = "metric";
-			_pendingRefreshIntervalSeconds = DefaultRefreshIntervalSeconds;
+			_pendingRefreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SECONDS;
 			_lastLocalWeatherSnapshot = null;
 			lock (_cloudWeatherLock)
 				{
@@ -635,7 +634,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			errors["Units"] = "Units must be Metric, UK, or Imperial.";
 			}
 
-		if (refreshInterval < MinimumRefreshIntervalSeconds)
+		if (refreshInterval < MINIMUM_REFRESH_INTERVAL_SECONDS)
 			{
 			errors["RefreshIntervalSeconds"] = "Refresh interval must be at least 60 seconds.";
 			}
@@ -764,10 +763,6 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		if (System.Threading.Interlocked.CompareExchange (ref _refreshInProgress, 1, 0) != 0)
 			{
 			DebugLog ("RunRefreshAsync: refresh already in progress; skipping new request.");
-			lock (_syncLock)
-				{
-				_queuedOnDemandRefresh = true;
-				}
 			return;
 			}
 
@@ -780,10 +775,6 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			{
 			DebugLog ("RunRefreshAsync: leaving refresh execution.");
 			System.Threading.Interlocked.Exchange (ref _refreshInProgress, 0);
-			lock (_syncLock)
-				{
-				_queuedOnDemandRefresh = false;
-				}
 			}
 		}
 
@@ -1102,7 +1093,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		try
 			{
 			DebugLog ("Attempting WeatherLink Live refresh from host " + _weatherLinkLiveHost + '.');
-			using var client = new WeatherLinkLiveClient (_weatherLinkLiveHost, WeatherLinkRefreshIntervalSeconds, WeatherLinkForceRefreshIntervalSeconds, UseMetricTemperatureUnits, UseMetricRainUnits, UseMetricWindUnits, UseMetricBarometerUnits);
+			using var client = new WeatherLinkLiveClient (_weatherLinkLiveHost, WEATHERLINK_REFRESH_INTERVAL_SECONDS, WEATHERLINK_FORCE_REFRESH_INTERVAL_SECONDS, UseMetricTemperatureUnits, UseMetricRainUnits, UseMetricWindUnits, UseMetricBarometerUnits);
 			DebugLog ("TryGetLocalCurrentWeatherAsync: calling InitializeAsync.");
 			await client.InitializeAsync (cancellationToken).ConfigureAwait (false);
 			DebugLog ("TryGetLocalCurrentWeatherAsync: InitializeAsync completed.");
@@ -1647,8 +1638,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private static bool IsWindy (WeatherSnapshot current, bool useMetricTemperatureUnits)
 		{
-		double sustainedThreshold = useMetricTemperatureUnits ? WindySustainedThresholdKph : WindySustainedThresholdMph;
-		double gustThreshold = useMetricTemperatureUnits ? WindyGustThresholdKph : WindyGustThresholdMph;
+		double sustainedThreshold = useMetricTemperatureUnits ? WINDY_SUSTAINED_THRESHOLD_KPH : WINDY_SUSTAINED_THRESHOLD_MPH;
+		double gustThreshold = useMetricTemperatureUnits ? WINDY_GUST_THRESHOLD_KPH : WINDY_GUST_THRESHOLD_MPH;
 		return (current.WindSpeed.HasValue && current.WindSpeed.Value >= sustainedThreshold)
 			|| (current.WindGust.HasValue && current.WindGust.Value >= gustThreshold);
 		}
