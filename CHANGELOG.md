@@ -2,7 +2,7 @@
 
 ## 2.0.13 — 2026-09-14
 
-[Draft driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
+[Driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
 
 - Cover local readings, failure cache retention, cloud refresh throttling and delayed local/cloud responses after configuration changes or disposal. Reject stale responses before they can restore cached weather or online state.
 
