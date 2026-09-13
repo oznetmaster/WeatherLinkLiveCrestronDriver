@@ -160,3 +160,14 @@ WeatherLink Live™ is a trademark of Davis Instruments.
 > **Note:** This project references [Crestron.DeviceDrivers.DevKit](https://www.nuget.org/packages/Crestron.DeviceDrivers.DevKit),
 > which is subject to Crestron's SDK license agreement. That license governs the SDK libraries only;
 > the source code in this repository is licensed independently under the terms above.
+
+
+## Automated tests
+
+The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 4 with the Visual Studio NUnit adapter) and `WeatherLinkLiveCrestronDriver.ProcessorTests` (a standalone Crestron Home Utility test package). The 40 offline tests exercise driver logic without credentials or real device commands. The processor-only lifecycle case is skipped on Windows.
+
+```powershell
+dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release
+```
+
+Build the processor project in Debug in Visual Studio to build and deploy using private deployment settings. See [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md) for setup, suites, tile operation and UI separation. Processor packages are not published to NuGet. See [CHANGELOG](CHANGELOG.md) for changes.

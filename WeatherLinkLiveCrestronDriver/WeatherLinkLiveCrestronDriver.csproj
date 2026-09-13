@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<PropertyGroup Condition="'$(BuildForTests)' == 'true'">
+		<OutputPath>bin\Tests\$(Configuration)\</OutputPath>
+		<IntermediateOutputPath>obj\Tests\$(Configuration)\</IntermediateOutputPath>
+	</PropertyGroup>
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
 		<OutputType>Library</OutputType>
@@ -31,10 +35,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="WeatherLinkLiveLibrary" Version="1.0.1" />
-		<PackageReference Include="SimpleWeatherClient" Version="1.0.2" />
+		<PackageReference Include="WeatherLinkLiveLibrary" Version="1.0.3" />
+		<PackageReference Include="SimpleWeatherClient" Version="1.0.3" />
 		<PackageReference Include="Crestron.DeviceDrivers.DevKit" Version="27.0.24" />
-		<PackageReference Include="Crestron.SimplSharp.SDK.Library" Version="2.21.257" />
+		<PackageReference Include="Crestron.SimplSharp.SDK.Library" Version="2.22.15" />
 		<PackageReference Include="Hafner.Compatibility.MetaPackage" Version="1.9.0" />
 	</ItemGroup>
 
@@ -67,11 +71,11 @@
 		<PackageDriverIgnoreExitCode Condition="'$(PackageDriverIgnoreExitCode)' == ''">true</PackageDriverIgnoreExitCode>
 	</PropertyGroup>
 
-	<Target Name="BumpDriverVersion" BeforeTargets="BeforeBuild">
+	<Target Name="BumpDriverVersion" BeforeTargets="BeforeBuild" Condition="'$(BuildForTests)' != 'true'">
 		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(MSBuildProjectDirectory)\BumpDriverVersion.ps1&quot; -ManifestPath &quot;$(MSBuildProjectDirectory)\WeatherlinkLiveCrestronDriver.json&quot; -Configuration &quot;$(Configuration)&quot;" />
 	</Target>
 
-	<Target Name="MergeDependencies" AfterTargets="Build">
+	<Target Name="MergeDependencies" AfterTargets="Build" Condition="'$(BuildForTests)' != 'true'">
 		<ItemGroup>
 			<MergeInputs Include="$(TargetPath)" />
 			<MergeInputs Include="$(TargetDir)WeatherLink Live Library.dll" />
@@ -97,7 +101,7 @@
 		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(MSBuildProjectDirectory)\PatchMergedAssembly.ps1&quot; -AssemblyPath &quot;$(TargetPath)&quot; -OutputPath &quot;$(TargetDir)patched\$(AssemblyName).dll&quot;" ContinueOnError="false" />
 	</Target>
 
-	<Target Name="PackageDriver" AfterTargets="MergeDependencies">
+	<Target Name="PackageDriver" AfterTargets="MergeDependencies" Condition="'$(BuildForTests)' != 'true'">
 		<RemoveDir Directories="$(TargetDir)patched\IncludeInPkg" />
 		<ItemGroup>
 			<IncludeInPkgFiles Include="$(MSBuildProjectDirectory)\IncludeInPkg\**\*" Exclude="$(MSBuildProjectDirectory)\IncludeInPkg\**\*.xsd" />
@@ -106,7 +110,7 @@
 		<Exec Command="&quot;$(ManifestUtilExe)&quot; --file &quot;$(TargetDir)patched\$(AssemblyName).dll&quot; --lib &quot;$(TargetDir.TrimEnd('\'))&quot; --output &quot;$(TargetDir.TrimEnd('\'))&quot;" ContinueOnError="$(PackageDriverContinueOnError)" IgnoreExitCode="$(PackageDriverIgnoreExitCode)" />
 	</Target>
 
-	<Target Name="DeployDriver" AfterTargets="PackageDriver" Condition="'$(DeployAfterBuild)' == 'true' And '$(Configuration)' == 'Debug' And '$(CrestronHomeIP)' != ''">
+	<Target Name="DeployDriver" AfterTargets="PackageDriver" Condition="'$(BuildForTests)' != 'true' And '$(DeployAfterBuild)' == 'true' And '$(Configuration)' == 'Debug' And '$(CrestronHomeIP)' != ''">
 		<PropertyGroup>
 			<PkgFile>$(TargetDir)$(AssemblyName).pkg</PkgFile>
 			<DeployScriptPath>$(MSBuildProjectDirectory)\Deploy.ps1</DeployScriptPath>

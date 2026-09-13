@@ -25,7 +25,9 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            10.0.x
+            8.0.x
 
       - name: Set up NuGet
         uses: NuGet/setup-nuget@v2
@@ -33,7 +35,7 @@ jobs:
       - name: Install ILRepack tool
         shell: pwsh
         run: |
-          dotnet tool install --global dotnet-ilrepack
+          dotnet tool install --global dotnet-ilrepack --version 2.0.45
           "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Install ManifestUtil package
@@ -93,6 +95,19 @@ jobs:
 
           "exe_path=$($manifestUtil.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+      - name: Check out processor test SDK
+        uses: actions/checkout@v4
+        with:
+          repository: oznetmaster/CrestronHomeNUnit
+          ref: 4fc6dc19b4b33ca578b4746a8f3b96b419a60746
+          path: .test-sdk
+
+      - name: Run driver unit tests
+        shell: pwsh
+        run: |
+          dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Restore dependencies
         run: dotnet restore WeatherLinkLiveCrestronDriver.slnx
 
@@ -138,7 +153,17 @@ jobs:
       - name: Build release package
         shell: pwsh
         run: |
-          dotnet build WeatherLinkLiveCrestronDriver.slnx -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false
+          dotnet build WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false
+
+      - name: Build and validate processor test package
+        shell: pwsh
+        run: |
+          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:DeployAfterBuild=false "-p:ProcessorTestSdkRoot=$env:GITHUB_WORKSPACE\.test-sdk" "-p:ManifestUtilExe=${{ steps.manifestutil.outputs.exe_path }}"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $extracted = Join-Path $env:RUNNER_TEMP 'weatherlink-driver-tests'
+          [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $PWD 'WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg'), $extracted)
+          & ./.test-sdk/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 40 --run-twice
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Locate package
         id: package
@@ -213,5 +238,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || github.ref_name }}
-          files: ${{ steps.package.outputs.pkg_path }}
+          files: |
+            ${{ steps.package.outputs.pkg_path }}
+            WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg
           fail_on_unmatched_files: true

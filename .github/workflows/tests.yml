@@ -1,0 +1,62 @@
+# Copyright (c) 2026 Neil Colvin. MIT with Commons Clause; see LICENSE.
+name: Tests
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: driver
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: driver
+      - uses: actions/checkout@v4
+        with:
+          repository: oznetmaster/CrestronHomeNUnit
+          ref: 4fc6dc19b4b33ca578b4746a8f3b96b419a60746
+          path: CrestronHomeNUnit
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+      - uses: NuGet/setup-nuget@v2
+      - name: Install processor packaging tools
+        run: ../CrestronHomeNUnit/tools/InstallCiTools.ps1
+      - name: Run NUnit driver tests
+        run: |
+          dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [xml]$result = Get-Content TestResults/tests.trx -Raw
+          $counts = $result.TestRun.ResultSummary.Counters
+          if ([int]$counts.passed -ne 40 -or [int]$counts.total -ne 41) { throw "Unexpected test counts: $($counts.OuterXml)" }
+      - name: Build processor package
+        run: |
+          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:DeployAfterBuild=false "-p:ManifestUtilExe=$env:MANIFEST_UTIL_EXE"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run the packaged unit suite twice
+        run: |
+          $output = Join-Path $PWD 'WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472'
+          $extracted = Join-Path $env:RUNNER_TEMP 'driver-package-tests'
+          [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $output 'WeatherLinkLiveCrestronDriver.ProcessorTests.pkg'), $extracted)
+          & ../CrestronHomeNUnit/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 40 --run-twice
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: driver/TestResults
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WeatherLinkLiveCrestronDriver-processor-tests
+          path: driver/WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg
+          if-no-files-found: error
