@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.13 — 2026-09-14
+
+[Draft driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
+
+- Cover local readings, failure cache retention, cloud refresh throttling and delayed local/cloud responses after configuration changes or disposal. Reject stale responses before they can restore cached weather or online state.
+
+- Normalize the working manifest from `2.0.011.0005` to `2.0.012.0005`; this aligns the development version family with the latest existing three-part release. No historical tags or packages are changed.
+
+- Standardize driver versioning: Debug project/package metadata follows the manifest including its build increment; local Release builds preserve it; three-part release tags select the exact CI release without another patch increment. Verify source and built package versions before publication.
+
+- Expand driver coverage to 40 offline tests and 16 SDK entity/lifecycle tests, with a desktop SDK harness and the same lifecycle fixtures in the net472 processor package.
+- Reject NaN latitude and longitude overrides. Add an internal location provider for deterministic desktop entity testing; the production constructor still reads the processor location.
+
 ## 2.0.12 - 2026-09-13
 
 - Add 40 NUnit driver unit tests and a processor lifecycle suite in the existing solution.

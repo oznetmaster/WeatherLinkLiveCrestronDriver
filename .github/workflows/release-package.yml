@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build-and-upload-package:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v')
     runs-on: windows-latest
     env:
       MANIFESTUTIL_VERSION: 27.0.24
@@ -99,7 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: oznetmaster/CrestronHomeNUnit
-          ref: 4fc6dc19b4b33ca578b4746a8f3b96b419a60746
+          ref: 76c23f5f8e1fe4a19e0a1d023bc04e187e66e056
           path: .test-sdk
 
       - name: Run driver unit tests
@@ -109,51 +110,28 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Restore dependencies
-        run: dotnet restore WeatherLinkLiveCrestronDriver.slnx
+        run: dotnet restore WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj
+
+      - name: Verify driver version rules
+        shell: pwsh
+        run: ./tools/Test-DriverVersioning.ps1
 
       - name: Determine release version
         id: package_version
         shell: pwsh
         run: |
-          $manifestPath = Join-Path $env:GITHUB_WORKSPACE 'WeatherLinkLiveCrestronDriver\WeatherlinkLiveCrestronDriver.json'
-          if (-not (Test-Path $manifestPath)) {
-            throw "Driver manifest was not found at '$manifestPath'."
-          }
-
-          $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
-          $driverVersion = $manifest.GeneralInformation.DriverVersion
-          if ([string]::IsNullOrWhiteSpace($driverVersion)) {
-            throw 'DriverVersion is missing from the driver manifest.'
-          }
-
-          $match = [regex]::Match($driverVersion, '^(?<major>\d+)\.(?<minor>\d+)\.(?<release>\d+)\.(?<build>\d+)$')
-          if (-not $match.Success) {
-            throw "DriverVersion '$driverVersion' does not contain four numeric components."
-          }
-
-          $releaseVersion = '{0}.{1}.{2}' -f $match.Groups['major'].Value, $match.Groups['minor'].Value, ([int]$match.Groups['release'].Value + 1)
-
           $refName = if ($env:GITHUB_EVENT_NAME -eq 'release' -and $env:GITHUB_EVENT_PATH) {
-            $event = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
-            $event.release.tag_name
-          }
-          else {
-            $env:GITHUB_REF_NAME
-          }
-
-          if (-not [string]::IsNullOrWhiteSpace($refName)) {
-            $tagVersion = $refName.TrimStart('v', 'V')
-            if ($tagVersion -match '^\d+\.\d+\.\d+$' -and $tagVersion -ne $releaseVersion) {
-              throw "GitHub tag version '$tagVersion' does not match expected Release version '$releaseVersion' derived from pre-build DriverVersion '$driverVersion'."
-            }
-          }
-
-          "value=$releaseVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            (Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).release.tag_name
+          } else { $env:GITHUB_REF_NAME }
+          $selected = & ./tools/Get-DriverReleaseVersion.ps1 -ManifestPath @('./WeatherLinkLiveCrestronDriver/WeatherlinkLiveCrestronDriver.json') -Tag $refName -RequireTag:($env:GITHUB_EVENT_NAME -eq 'release')
+          "value=$($selected.PackageVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "driver=$($selected.DriverReleaseVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag=$($selected.Tag)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Build release package
         shell: pwsh
         run: |
-          dotnet build WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false
+          dotnet build WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false -p:DriverReleaseVersion="${{ steps.package_version.outputs.driver }}"
 
       - name: Build and validate processor test package
         shell: pwsh
@@ -169,12 +147,15 @@ jobs:
         id: package
         shell: pwsh
         run: |
-          $pkg = Get-ChildItem -Path "$env:GITHUB_WORKSPACE\WeatherLinkLiveCrestronDriver\bin\Release" -Filter *.pkg -Recurse | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+          $pkg = Get-Item -LiteralPath "$env:GITHUB_WORKSPACE\WeatherLinkLiveCrestronDriver\bin\Release\net472\WeatherlinkLiveCrestronDriver.pkg" -ErrorAction Stop
           if ($null -eq $pkg) {
             throw 'No .pkg file was generated in WeatherLinkLiveCrestronDriver/bin/Release.'
           }
 
+          & ./tools/Assert-DriverPackageVersion.ps1 -PackagePath $pkg.FullName -ManifestPath './WeatherLinkLiveCrestronDriver/WeatherlinkLiveCrestronDriver.json' -ReleaseVersion '${{ steps.package_version.outputs.value }}'
+
           "pkg_path=$($pkg.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
 
       - name: Pack NuGet package
         shell: pwsh

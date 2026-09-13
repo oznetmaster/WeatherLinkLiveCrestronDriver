@@ -19,8 +19,10 @@ public sealed class ProcessorLifecycleTests
 	[SetUp]
 	public void RequireProcessorRuntime ()
 		{
+#if NETFRAMEWORK
 		if (Type.GetType ("Mono.Runtime") == null)
 			Assert.Ignore ("Requires the Crestron processor runtime; run the Processor Lifecycle suite on the processor.");
+#endif
 		}
 	[Test]
 	public void UnconfiguredDriver_CanBeCreatedDisposedAndCreatedAgain ()
@@ -29,7 +31,11 @@ public sealed class ProcessorLifecycleTests
 		for (int iteration = 0; iteration < 2; iteration++)
 			{
 			var args = new DriverControllerCreationArgs ("processor-lifecycle-test", TestSupport.DataDirectory, logger.AppLogger, null);
+#if NETFRAMEWORK
 			using var driver = new WeatherStationDriver (args, TestSupport.Resources (logger));
+#else
+			using var driver = new WeatherStationDriver (args, TestSupport.Resources (logger), () => (56d, -5d));
+#endif
 			Assert.That (driver.ConfigurationController, Is.Not.Null);
 			var state = driver.GetState ();
 			Assert.That (state.PropertyValues["onlineIndicator:isOnline"].GetValue<bool> (), Is.False);

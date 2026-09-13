@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: oznetmaster/CrestronHomeNUnit
-          ref: 4fc6dc19b4b33ca578b4746a8f3b96b419a60746
+          ref: 76c23f5f8e1fe4a19e0a1d023bc04e187e66e056
           path: CrestronHomeNUnit
       - uses: actions/setup-dotnet@v4
         with:
@@ -37,10 +37,34 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           [xml]$result = Get-Content TestResults/tests.trx -Raw
           $counts = $result.TestRun.ResultSummary.Counters
-          if ([int]$counts.passed -ne 40 -or [int]$counts.total -ne 41) { throw "Unexpected test counts: $($counts.OuterXml)" }
+          if ([int]$counts.passed -ne 40 -or [int]$counts.total -ne 56) { throw "Unexpected test counts: $($counts.OuterXml)" }
+      - name: Restore private desktop SDK dependency
+        env:
+          COMPACT_1: ${{ secrets.CI_COMPACT_JSON_1 }}
+          COMPACT_2: ${{ secrets.CI_COMPACT_JSON_2 }}
+          COMPACT_3: ${{ secrets.CI_COMPACT_JSON_3 }}
+          COMPACT_4: ${{ secrets.CI_COMPACT_JSON_4 }}
+          COMPACT_5: ${{ secrets.CI_COMPACT_JSON_5 }}
+        run: |
+          $encoded = $env:COMPACT_1 + $env:COMPACT_2 + $env:COMPACT_3 + $env:COMPACT_4 + $env:COMPACT_5
+          if ([string]::IsNullOrEmpty($encoded)) { throw 'Desktop SDK dependency unavailable. Fork PRs require a trusted maintainer CI run.' }
+          $inputStream = [IO.MemoryStream]::new([Convert]::FromBase64String($encoded))
+          $gzip = [IO.Compression.GZipStream]::new($inputStream, [IO.Compression.CompressionMode]::Decompress)
+          $path = Join-Path $env:RUNNER_TEMP 'Newtonsoft.Json.Compact.dll'
+          $output = [IO.File]::Create($path)
+          try { $gzip.CopyTo($output) } finally { $output.Dispose(); $gzip.Dispose(); $inputStream.Dispose() }
+          if ((Get-FileHash $path -Algorithm SHA256).Hash -ne '8b9567057419e97b20702a4364283b0b5c34d5e00e006e329e1c92b74638ef90') { throw 'Unexpected desktop SDK dependency checksum.' }
+          "CompactJsonPath=$path" >> $env:GITHUB_ENV
+      - name: Run desktop SDK lifecycle harness
+        run: |
+          dotnet test WeatherLinkLiveCrestronDriver.Lifecycle.Tests/WeatherLinkLiveCrestronDriver.Lifecycle.Tests.csproj -c Release --logger "trx;LogFileName=lifecycle.trx" --results-directory TestResults -p:DeployAfterBuild=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [xml]$result = Get-Content TestResults/lifecycle.trx -Raw
+          $counts = $result.TestRun.ResultSummary.Counters
+          if ([int]$counts.passed -ne 56 -or [int]$counts.total -ne 56) { throw "Unexpected lifecycle harness counts: $($counts.OuterXml)" }
       - name: Build processor package
         run: |
-          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:DeployAfterBuild=false "-p:ManifestUtilExe=$env:MANIFEST_UTIL_EXE"
+          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:ReleaseVersion=1.1.0 -p:DeployAfterBuild=false "-p:ManifestUtilExe=$env:MANIFEST_UTIL_EXE"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run the packaged unit suite twice
         run: |

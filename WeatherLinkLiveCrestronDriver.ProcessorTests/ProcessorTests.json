@@ -14,7 +14,7 @@
       "Name": "WeatherLinkLiveCrestronDriver Tests  -  Processor Lifecycle",
       "FilterXml": "<filter><cat>Processor</cat></filter>",
       "ManualOnly": true,
-      "ExpectedCount": 1
+      "ExpectedCount": 16
     }
   ]
 }

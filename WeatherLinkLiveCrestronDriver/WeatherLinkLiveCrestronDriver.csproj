@@ -4,6 +4,8 @@
 		<OutputPath>bin\Tests\$(Configuration)\</OutputPath>
 		<IntermediateOutputPath>obj\Tests\$(Configuration)\</IntermediateOutputPath>
 	</PropertyGroup>
+
+  <Import Project="DriverVersion.props" />
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
 		<OutputType>Library</OutputType>
@@ -71,8 +73,8 @@
 		<PackageDriverIgnoreExitCode Condition="'$(PackageDriverIgnoreExitCode)' == ''">true</PackageDriverIgnoreExitCode>
 	</PropertyGroup>
 
-	<Target Name="BumpDriverVersion" BeforeTargets="BeforeBuild" Condition="'$(BuildForTests)' != 'true'">
-		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(MSBuildProjectDirectory)\BumpDriverVersion.ps1&quot; -ManifestPath &quot;$(MSBuildProjectDirectory)\WeatherlinkLiveCrestronDriver.json&quot; -Configuration &quot;$(Configuration)&quot;" />
+	<Target Name="BumpDriverVersion" BeforeTargets="BeforeBuild" Condition="'$(BuildForTests)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(MSBuildProjectDirectory)\BumpDriverVersion.ps1&quot; -ManifestPath &quot;$(MSBuildProjectDirectory)\WeatherlinkLiveCrestronDriver.json&quot; -Configuration &quot;$(Configuration)&quot; -ReleaseVersion &quot;$(DriverReleaseVersion)&quot;" />
 	</Target>
 
 	<Target Name="MergeDependencies" AfterTargets="Build" Condition="'$(BuildForTests)' != 'true'">

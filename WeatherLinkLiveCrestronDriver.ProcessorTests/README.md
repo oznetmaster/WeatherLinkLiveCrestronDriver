@@ -17,10 +17,17 @@ The package appears at `bin/Debug/net472/WeatherLinkLiveCrestronDriver.Processor
 ## Suites
 
 - **Unit Tests**: 40 offline driver cases. Run on Windows through the NUnit Visual Studio adapter or on the processor. No account credentials or physical devices are needed.
-- **Processor Lifecycle**: one test that creates, queries and disposes the actual unconfigured driver twice with its original configuration metadata and UI test data. It checks initial offline/not-ready values and stable property definitions. It is skipped on Windows and must be run separately on the processor.
+- **Processor Lifecycle**: 9 SDK lifecycle checks. Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API. Run these separately on the processor; the shared desktop harness provides additional validation.
 
 Use the Windows runner's **Find packages**, select this package, connect, then select a suite and **Run all**. Discovery uses a dynamically assigned port. The standalone tile exposes the same suites and results. Nothing runs automatically on deployment. Original driver assets are under `DriverTestData`; the test tile's assets retain their own root paths.
 
 These suites do not authenticate with external services or operate physical devices. Processor lifecycle results must be verified on real hardware; desktop unit success does not establish processor lifecycle compatibility.
 
 This project targets only `net472`. It is not packable or publishable to NuGet. See [third-party notices](THIRD-PARTY-NOTICES.md), the root LICENSE, and [runner documentation](https://github.com/oznetmaster/CrestronHomeNUnit#readme).
+
+
+## Expanded coverage
+
+Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
+
+The package contains 40 offline cases and 16 lifecycle cases. Lifecycle tests exercise newly constructed test entities, not the installed production driver. Both suites are selectable in the Windows runner and through the standalone Utility tile. Processor hardware validation remains required.
