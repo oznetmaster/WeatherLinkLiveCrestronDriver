@@ -32,3 +32,6 @@ This project targets only `net472`. It is not packable or publishable to NuGet. 
 Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
 
 The package contains 40 offline cases, 16 lifecycle cases and 3 optional live cases. Lifecycle and live tests exercise newly constructed test entities; checking the installed production instance is a separate workflow stage. Suites are selectable in the Windows runner and through the standalone Utility tile; the live suite requires private inputs uploaded from the runner.
+
+
+Hosted and release validation compare the exact discovered test identities with execution results and the merged package, rather than maintaining a duplicate expected test count. Live tests are discovered but not operated in hosted CI. Only documented processor-runtime skips are accepted by the Windows net472 check; the desktop SDK harness must execute every automatic test successfully.
