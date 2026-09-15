@@ -100,13 +100,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: oznetmaster/CrestronHomeNUnit
-          ref: 76c23f5f8e1fe4a19e0a1d023bc04e187e66e056
+          ref: ad67729080f9d753c16b9f0d4acdd13c52bab5e3
           path: .test-sdk
 
       - name: Run driver unit tests
         shell: pwsh
         run: |
-          dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+          dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release --filter "TestCategory!=Live" --logger "trx;LogFileName=tests.trx" --results-directory TestResults
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Restore dependencies
@@ -140,7 +140,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $extracted = Join-Path $env:RUNNER_TEMP 'weatherlink-driver-tests'
           [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $PWD 'WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg'), $extracted)
-          & ./.test-sdk/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 40 --run-twice
+          & ./.test-sdk/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 56 --run-twice
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Locate package
