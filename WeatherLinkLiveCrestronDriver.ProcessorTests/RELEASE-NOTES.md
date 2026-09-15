@@ -1,5 +1,10 @@
 # WeatherLinkLiveCrestronDriver Tests
 
+## Unreleased
+
+- Add three optional live weather station tests for measured readings, repeated refresh and unit selection. The package contains 59 tests in total.
+- Supply the station address through private runner inputs. Tests read station data without changing station settings.
+
 ## 1.1.0 — 2026-09-14
 
 - 40 offline tests and 16 SDK lifecycle tests, shared between desktop validation and the net472 processor package.

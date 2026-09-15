@@ -1,6 +1,15 @@
 # Changelog
 
-## 2.0.13 — 2026-09-14
+## Unreleased
+
+- Add the published Test Explorer workflow adapter, offline discovery CI and independent GitHub processor-test releases. Private workflow plans control optional live tests, actual-driver updates and temporary-instance cleanup.
+
+
+- Add three optional live driver tests for measured station readings, repeated refresh and unit selection. The processor package now contains 59 tests. Private station settings are supplied as test inputs and are never packaged.
+
+- Clarify that automatic forecast coordinates come from the native processor location, not Home's separate setting. Document the native console command, SDK reboot requirement, and paired driver override alternative. Documentation only; no driver behavior change.
+
+## 2.0.13 â€” 2026-09-14
 
 [Driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
 

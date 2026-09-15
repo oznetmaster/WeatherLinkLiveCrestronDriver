@@ -45,7 +45,7 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 | Crestron Home processor | Running a firmware version compatible with extension drivers |
 | WeatherLink Live device | Optional but recommended for local current conditions |
 | OpenWeather API key | Required for forecast data and cloud fallback current conditions |
-| Crestron Home system location | Must be configured for cloud weather requests |
+| Processor location or coordinate overrides | Native processor latitude/longitude must be configured, or supply both driver overrides |
 
 ---
 
@@ -69,8 +69,8 @@ Crestron Home Driver NuGet Publishing Standard v1 is **not** an official Crestro
 | WeatherLink Live Host | Optional. IP address or hostname of the local WeatherLink Live device |
 | OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions |
 | Location Name Override | Optional. Overrides the title location name shown on the current conditions page |
-| Latitude Override | Optional. Leave blank to use the Crestron Home system latitude for cloud weather requests |
-| Longitude Override | Optional. Leave blank to use the Crestron Home system longitude for cloud weather requests |
+| Latitude Override | Optional. Leave blank to use the native processor latitude for cloud weather requests |
+| Longitude Override | Optional. Leave blank to use the native processor longitude for cloud weather requests |
 | Units | `Metric`, `UK`, or `Imperial` |
 | Refresh Interval Seconds | Refresh interval for scheduled current-condition updates; forecast/cloud refreshes follow their own startup, manual, and daily refresh rules |
 
@@ -83,7 +83,17 @@ The current conditions and weekly forecast page title locations use the followin
 3. Reverse-geocoded city name from the configured/effective coordinates
 4. Effective latitude/longitude text
 
-Latitude and longitude overrides are optional, but they must both be supplied together. When left blank, the driver uses the Crestron Home system location for cloud weather access.
+Latitude and longitude overrides are optional, but they must both be supplied together. When left blank, the driver reads the native processor location through `CrestronEnvironment.Latitude` and `CrestronEnvironment.Longitude` for cloud weather access.
+
+---
+
+## Checking the Forecast Location
+
+The location configured in Home can differ from the native processor location returned by the SIMPL# SDK. The driver reads the native processor values; a location name override changes the displayed title only, not the forecast coordinates.
+
+In the processor console, use `LOCATION` to read the native coordinates. Use `LOCATION ?` to see the setting syntax; `-LAT:` accepts north-positive latitude and `-LON:` accepts east-positive longitude (west is negative). The Home commands `SETLATITUDE` and `SETLONGITUDE` change Home's own settings and are not substitutes for the native `LOCATION` command.
+
+The SDK caches its location values and documents that changing them requires a processor reboot. Reloading an individual V2 driver may still leave it reading the old values. After changing the native location and rebooting, check the driver's displayed coordinates and request a fresh forecast. Alternatively, configure both driver coordinate overrides to avoid relying on the processor location.
 
 ---
 
@@ -181,7 +191,9 @@ Cover local readings, failure cache retention, cloud refresh throttling and dela
 
 Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
 
-The current package contains **40 offline tests** and **16 SDK entity/lifecycle tests**. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. These fixtures use synthetic data and do not operate installed devices or authenticate with real accounts.
+The current package contains **40 offline tests**, **16 SDK entity/lifecycle tests** and **3 optional live weather station tests**. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. Unit and lifecycle fixtures use synthetic data. Live fixtures read a real station and verify measured readings, repeated refresh and unit selection on a new test entity, without changing station settings.
+
+For live tests, copy `WeatherLinkLiveCrestronDriver.Tests/LiveTestSettings.example.json` to a private `LiveTestSettings.json` and supply `ipAddress`. The desktop SDK harness reads it from `%LOCALAPPDATA%/WeatherLinkLive`, or from the NUnit `TestDataDirectory` parameter. Set `enabled` to `true` for local testing, or supply `EnableLiveTests=true`; `EnableLiveTests=false` always disables it. On the processor, upload the file through **Test inputs** and select **Live Weather Station**. See the [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md). Keep private inputs outside the repository or exclude them through `.git/info/exclude`; never include them in packages.
 
 `WeatherLinkLiveCrestronDriver.Lifecycle.Tests` runs the entity checks against the real desktop SDK on .NET 10. It compiles the relevant driver sources and shares fixture sources with the net472 processor tests. Building this project does not deploy a driver. A locally supplied `Newtonsoft.Json.Compact.dll` is needed by the SDK's manifest reader; it is supplied by the processor at runtime and must not be added to source control or bundled with the processor test package.
 
@@ -214,3 +226,7 @@ The SDK's desktop manifest reader needs its `Newtonsoft.Json.Compact.dll` runtim
 For automated local tests, processor tests and gated driver deployment, see the [Crestron Home NUnit CI development guide](https://github.com/oznetmaster/CrestronHomeNUnit/blob/HEAD/docs/ContinuousIntegration.md). It covers private configuration, live-test gates, install/update waits, results and optional test-package removal.
 
 Local build/deployment overrides can be created by copying [WeatherLinkLiveCrestronDriver.Local.targets.example](WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.Local.targets.example) to `WeatherLinkLiveCrestronDriver.Local.targets` beside the project. Fill in your own paths privately and exclude the resulting local file with `.git/info/exclude`; it is not part of the published source.
+
+## Visual Studio processor workflow
+
+The solution includes [WeatherLinkLiveCrestronDriver.WorkflowTests](WeatherLinkLiveCrestronDriver.WorkflowTests/README.md), using the published Crestron Home Test Adapter. It exposes the complete gated workflow in Test Explorer while the ordinary NUnit fixtures remain available for local testing. Configure its private settings before execution; hosted CI verifies discovery without accessing hardware.

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="WeatherLinkLiveCrestronDriver.WorkflowTests/WeatherLinkLiveCrestronDriver.WorkflowTests.csproj" />
   <Project Path="WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj" />
   <Project Path="WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj" />
   <Project Path="WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj" />

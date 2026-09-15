@@ -68,9 +68,9 @@
 		<LocalNet472ReferenceAssemblies Condition="'$(LocalNet472ReferenceAssemblies)' == ''">$(NET472_REFERENCE_ASSEMBLIES)</LocalNet472ReferenceAssemblies>
 		<LocalNetFxRuntimeDir Condition="'$(LocalNetFxRuntimeDir)' == ''">$(NETFX_RUNTIME_DIR)</LocalNetFxRuntimeDir>
 		<ManifestUtilExe Condition="'$(ManifestUtilExe)' == ''">ManifestUtil.exe</ManifestUtilExe>
-		<MergeDependenciesContinueOnError Condition="'$(MergeDependenciesContinueOnError)' == ''">true</MergeDependenciesContinueOnError>
-		<PackageDriverContinueOnError Condition="'$(PackageDriverContinueOnError)' == ''">true</PackageDriverContinueOnError>
-		<PackageDriverIgnoreExitCode Condition="'$(PackageDriverIgnoreExitCode)' == ''">true</PackageDriverIgnoreExitCode>
+		<MergeDependenciesContinueOnError Condition="'$(MergeDependenciesContinueOnError)' == ''">false</MergeDependenciesContinueOnError>
+		<PackageDriverContinueOnError Condition="'$(PackageDriverContinueOnError)' == ''">false</PackageDriverContinueOnError>
+		<PackageDriverIgnoreExitCode Condition="'$(PackageDriverIgnoreExitCode)' == ''">false</PackageDriverIgnoreExitCode>
 	</PropertyGroup>
 
 	<Target Name="BumpDriverVersion" BeforeTargets="BeforeBuild" Condition="'$(BuildForTests)' != 'true' And '$(DesignTimeBuild)' != 'true'">
@@ -118,7 +118,7 @@
 			<DeployScriptPath>$(MSBuildProjectDirectory)\Deploy.ps1</DeployScriptPath>
 		</PropertyGroup>
 		<Message Text="Deploying $(AssemblyName).pkg to $(CrestronHomeIP)..." Importance="High" />
-		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(DeployScriptPath)&quot; -PkgFile &quot;$(PkgFile)&quot; -ProcessorIP &quot;$(CrestronHomeIP)&quot; -User &quot;$(CrestronHomeFtpUser)&quot; -Password &quot;$(CrestronHomeSftpPassword)&quot;" ContinueOnError="false" />
+		<Exec Command="pwsh -NoProfile -NonInteractive -File &quot;$(DeployScriptPath)&quot; -PkgFile &quot;$(PkgFile)&quot; -ProjectUserFile &quot;$(MSBuildProjectFullPath).user&quot;" />
 	</Target>
 
 	<Target Name="ValidateNuGetPkgInput" BeforeTargets="GenerateNuspec" Condition="'$(IsPacking)' == 'true'">

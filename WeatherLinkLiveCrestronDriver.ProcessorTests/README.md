@@ -17,11 +17,12 @@ The package appears at `bin/Debug/net472/WeatherLinkLiveCrestronDriver.Processor
 ## Suites
 
 - **Unit Tests**: 40 offline driver cases. Run on Windows through the NUnit Visual Studio adapter or on the processor. No account credentials or physical devices are needed.
-- **Processor Lifecycle**: 9 SDK lifecycle checks. Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API. Run these separately on the processor; the shared desktop harness provides additional validation.
+- **Processor Lifecycle**: 16 SDK lifecycle checks. Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API. Run these separately on the processor; the shared desktop harness provides additional validation.
+- **Live Weather Station**: 3 optional read-only checks against a real WeatherLink Live station. Verify measured temperature and humidity, repeated refresh and unit selection on a newly constructed test entity.
 
 Use the Windows runner's **Find packages**, select this package, connect, then select a suite and **Run all**. Discovery uses a dynamically assigned port. The standalone tile exposes the same suites and results. Nothing runs automatically on deployment. Original driver assets are under `DriverTestData`; the test tile's assets retain their own root paths.
 
-These suites do not authenticate with external services or operate physical devices. Processor lifecycle results must be verified on real hardware; desktop unit success does not establish processor lifecycle compatibility.
+Unit and lifecycle suites use synthetic responses. The live suite reads the configured station without changing station settings. Copy the test project's `LiveTestSettings.example.json` to a private `LiveTestSettings.json`, supply `ipAddress`, and load it through the runner's **Test inputs** before selecting the live suite. Selecting that suite enables it for the run. Keep this file outside the repository or exclude it with `.git/info/exclude`; it is never part of the package.
 
 This project targets only `net472`. It is not packable or publishable to NuGet. See [third-party notices](THIRD-PARTY-NOTICES.md), the root LICENSE, and [runner documentation](https://github.com/oznetmaster/CrestronHomeNUnit#readme).
 
@@ -30,4 +31,4 @@ This project targets only `net472`. It is not packable or publishable to NuGet. 
 
 Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
 
-The package contains 40 offline cases and 16 lifecycle cases. Lifecycle tests exercise newly constructed test entities, not the installed production driver. Both suites are selectable in the Windows runner and through the standalone Utility tile. Processor hardware validation remains required.
+The package contains 40 offline cases, 16 lifecycle cases and 3 optional live cases. Lifecycle and live tests exercise newly constructed test entities; checking the installed production instance is a separate workflow stage. Suites are selectable in the Windows runner and through the standalone Utility tile; the live suite requires private inputs uploaded from the runner.
