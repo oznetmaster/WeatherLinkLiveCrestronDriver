@@ -66,12 +66,14 @@ jobs:
         run: |
           dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:ReleaseVersion=1.1.0 -p:DeployAfterBuild=false "-p:ManifestUtilExe=$env:MANIFEST_UTIL_EXE"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Run the packaged unit suite twice
+      - name: Validate automatic package suites twice
         run: |
           $output = Join-Path $PWD 'WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472'
           $extracted = Join-Path $env:RUNNER_TEMP 'driver-package-tests'
           [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $output 'WeatherLinkLiveCrestronDriver.ProcessorTests.pkg'), $extracted)
-          & ../CrestronHomeNUnit/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 40 --run-twice
+          # Count all automatic suites. Processor lifecycle cases are discovered but ignored on Windows.
+          # The desktop SDK harness above executes those cases; hardware CI executes them on the processor.
+          & ../CrestronHomeNUnit/ProcessorTestPackage.Validation/bin/Release/net472/ProcessorTestPackage.Validation.exe (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') (Join-Path $PWD 'TestResults/processor') 56 --run-twice
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         if: always()
