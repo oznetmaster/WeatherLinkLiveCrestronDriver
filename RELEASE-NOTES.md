@@ -1,20 +1,10 @@
-# WeatherLinkLiveCrestronDriver v2.0.13
+# WeatherLinkLiveCrestronDriver v2.0.14
 
-Patch release correcting lifecycle, configuration and recovery defects while preserving the public API and intended driver behavior.
+Patch release correcting tile placement in the Crestron Home app.
 
-## Fixes
+- Display the driver tile on the Home screen only, instead of both Home and room screens.
+- Preserve the driver's room assignment, configuration, authentication and control APIs.
 
-- Reject delayed local and cloud readings after configuration changes or disposal so old responses cannot repopulate caches or restore stale online state.
-- Preserve the last local reading when a refresh fails and retain cloud refresh throttling.
-- Reject NaN latitude and longitude overrides. Normal operation continues to obtain location from the processor.
+Validation: all 56 existing offline and desktop SDK fixture cases passed. The UI definition parses successfully and explicitly enables Home placement while disabling room placement.
 
-## Tests and build process
-
-- 40 offline tests and 16 SDK lifecycle tests. The current implementation passes on Windows in Debug and Release; both processor suites passed twice in the same host process.
-- The shared net472 processor test package is available in the solution and appears under **Utility** in Configure. Its standalone Home tile and Windows NUnit runner select the test suites.
-- Driver Debug build versions follow the manifest; three-part release tags select the CI release version. Test builds do not increment or deploy the production driver.
-- Processor test packages are not published to NuGet. Private deployment settings, live inputs and desktop SDK runtime dependencies are excluded from source and release assets.
-
-## Installation and documentation
-
-The GitHub release includes the production driver package and a separate processor test package. The test package appears under Utility in Configure and is not included in the driver NuGet package. See [CHANGELOG.md](CHANGELOG.md) for release history and [README.md](README.md) for installation and testing.
+Update the existing driver instance with this package. No reconfiguration is required.

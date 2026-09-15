@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <uidefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://prd-use-rad-assets.azurewebsites.net/ExtensionsSchemaDefinition.xsd">
 	<version ver="2.0" />
-	<tile icon="{weatherIcon}" status="{tileDisplay}" secondaryicon="{weatherIcon}" navigation="show:CurrentConditionsPage" showinhomepage="#true" showinroompage="#true"/>
+	<tile icon="{weatherIcon}" status="{tileDisplay}" secondaryicon="{weatherIcon}" navigation="show:CurrentConditionsPage" showinhomepage="#true" showinroompage="#false"/>
 	<layouts>
 		<layout id="CurrentConditionsPage" title="^CurrentConditionsPageTitle|{currentConditionsTitle}" isdefaultlayout="#true">
 			<controls>
