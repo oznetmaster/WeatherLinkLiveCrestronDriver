@@ -1,60 +1,21 @@
 # Changelog
 
-## Offline release workflow option - 2026-09-15 (no package release)
-
-- Allow an explicit manual release when local hardware or the self-hosted runner is unavailable, with the reason and exact source recorded in the workflow summary.
-- Keep hosted source validation mandatory and preserve all build, test and packaging steps. No runtime, API or package-version changes.
-
-## CI package cleanup - 2026-09-15 (no driver or processor package release)
-
-- Update Test Explorer workflow containers to CrestronHomeNUnit.TestAdapter 1.3.0 and document opt-in storage cleanup after successful CI runs.
-- Retain original deployment filenames, protect pre-existing/manual packages and preserve failed-run evidence. Cleanup frees archive storage without rebooting; Home can retain cached catalogue entries until its next planned reboot.
-- Compare executed test identities and packaged discovery against source discovery instead of duplicated count constants. Live suites remain discovery-only in hosted CI; only the documented processor-runtime skips are accepted on Windows.
-- Actual driver/library code is unchanged; no driver release is required.
+This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
 ## 2.0.14 - 2026-09-15
 
 - Correct the driver tile to appear on the Home screen only, rather than both Home and room screens. Room assignment, configuration and public commands are unchanged.
 
-## CI validation - 2026-09-15 (no package release)
-
-- Revalidate the current default-branch source after successful release workflows, including version commits created by GitHub Actions.
-- Allow maintainers to configure exact-source, App-specific checks that must pass before publishing through `RELEASE_REQUIRED_CHECKS`; missing, failed or unconfirmed checks block the release.
-
-## WeatherLinkLiveCrestronDriver.ProcessorTests v1.1.1 - 2026-09-15
-
-Published processor test package on GitHub. This is a test-package release only; no driver or library NuGet package is published. See the matching package release notes for changes and validation.
-
-## 2026-09-15 - Test and development tooling (no driver release)
-
-- Add the published Test Explorer workflow adapter, offline discovery CI and independent GitHub processor-test releases. Private workflow plans control optional live tests, actual-driver updates and temporary-instance cleanup.
-
-
-- Add three optional live driver tests for measured station readings, repeated refresh and unit selection. The processor package now contains 59 tests. Private station settings are supplied as test inputs and are never packaged.
-
-- Clarify that automatic forecast coordinates come from the native processor location, not Home's separate setting. Document the native console command, SDK reboot requirement, and paired driver override alternative. Documentation only; no driver behavior change.
-
 ## 2.0.13 — 2026-09-14
 
 [Driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
 
-- Cover local readings, failure cache retention, cloud refresh throttling and delayed local/cloud responses after configuration changes or disposal. Reject stale responses before they can restore cached weather or online state.
+- Reject stale local and cloud responses after configuration changes or disposal, before they can restore cached weather or online state.
 
-- Normalize the working manifest from `2.0.011.0005` to `2.0.012.0005`; this aligns the development version family with the latest existing three-part release. No historical tags or packages are changed.
-
-- Standardize driver versioning: Debug project/package metadata follows the manifest including its build increment; local Release builds preserve it; three-part release tags select the exact CI release without another patch increment. Verify source and built package versions before publication.
-
-- Expand driver coverage to 40 offline tests and 16 SDK entity/lifecycle tests, with a desktop SDK harness and the same lifecycle fixtures in the net472 processor package.
-- Reject NaN latitude and longitude overrides. Add an internal location provider for deterministic desktop entity testing; the production constructor still reads the processor location.
+- Reject NaN latitude and longitude overrides. The production constructor continues to read the processor location.
 
 ## 2.0.12 - 2026-09-13
 
-- Add 40 NUnit driver unit tests and a processor lifecycle suite in the existing solution.
-- Add a standalone Utility processor test package with private Debug deployment settings.
 - Update WeatherLinkLiveLibrary to 1.0.3, SimpleWeatherClient to 1.0.3 and the SIMPL# SDK library to 2.22.15.
 
-### Validation
-
-- 40 offline NUnit tests pass on Windows; the actual packaged unit suite also passes twice in one process.
-- The processor lifecycle test is available for hardware validation and is skipped on Windows.
 - The production driver package and its NuGet wrapper retain the existing public driver behavior; dependency updates supply the library fixes.
