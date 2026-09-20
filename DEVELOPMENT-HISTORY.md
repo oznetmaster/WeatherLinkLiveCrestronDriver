@@ -11,6 +11,10 @@ See the [product changelog](CHANGELOG.md) for shipped changes. This document pre
 
 <!-- development-history -->
 
+## WeatherLinkLiveCrestronDriver.ProcessorTests v1.1.2 - 2026-09-20
+
+Published processor test package on GitHub. This is a test-package release only; no driver or library NuGet package is published. See the matching package release notes for changes and validation.
+
 ## Weather display and package validation - 2026-09-21 (driver 2.0.16)
 
 - Add regression coverage for local pressure and cloud pressure, wind and rainfall units.
