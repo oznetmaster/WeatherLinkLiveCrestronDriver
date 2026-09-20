@@ -12,6 +12,19 @@ namespace WeatherLinkLiveCrestronDriver.Tests;
 public sealed class WeatherDisplayTests
 	{
 	private static T Call<T> (string name, params object[] args) => TestSupport.Call<T> (typeof (WeatherStationDriver), name, args);
+	[TestCase (true, true, 762d, "Pressure 1015.9 hPa | Rising")]
+	[TestCase (false, true, 1015.9166d, "Pressure 1015.9 hPa | Rising")]
+	[TestCase (true, false, 30d, "Pressure 30.0 inHg | Rising")]
+	[TestCase (false, false, 1015.9166d, "Pressure 30.0 inHg | Rising")]
+	[TestCase (true, true, null, "Pressure --")]
+	[TestCase (false, false, null, "Pressure --")]
+	public void Pressure_ConvertsTheSourceUnitsToTheDisplayedUnits (bool local, bool metric, double? pressure, string expected)
+		{
+		// WeatherLinkLiveLibrary supplies mmHg in metric mode or inHg otherwise.
+		// OpenWeather supplies hPa for every requested unit system.
+		var snapshot = new WeatherStationDriver.WeatherSnapshot { IsLocalCurrent = local, Pressure = pressure, PressureTrend = "Rising" };
+		Assert.That (Call<string> ("BuildPressureSummary", snapshot, metric), Is.EqualTo (expected));
+		}
 	[TestCase (null, "metric")]
 	[TestCase ("", "metric")]
 	[TestCase ("Metric", "metric")]

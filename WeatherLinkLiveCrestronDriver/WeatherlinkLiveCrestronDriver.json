@@ -18,11 +18,11 @@
       "Company": "Neil Colvin",
       "Contact": "Neil Colvin",
       "Email": "",
-      "Website": "",
+      "Website": "https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver",
       "PhoneNumber": ""
     },
-    "DriverVersion": "2.0.014.0001",
-    "VersionDate": "2026-09-15 13:58:01.446"
+    "DriverVersion": "2.0.016.0000",
+    "VersionDate": "2026-09-20 22:25:05.207"
   },
   "ConfigurationSteps": {
     "Items": [

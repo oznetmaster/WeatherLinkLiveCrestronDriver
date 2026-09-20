@@ -129,7 +129,7 @@ For tile icon selection, the driver prefers direct local numeric WeatherLink Liv
 - `.NET Framework 4.7.2`
 - [ILRepack](https://github.com/gluck/il-repack) via `ILRepackMerge.ps1`
 - `PatchMergedAssembly.ps1` to rewrite merged assemblies for Crestron Home runtime compatibility
-- `ManifestUtil.exe` from the Crestron Driver SDK to produce the final `.pkg`
+- `ManifestUtil.exe` from the complete `Crestron.DeviceDrivers.ManifestUtil` 29.0.10 NuGet tool package to produce the final `.pkg`
 
 ### Build
 
@@ -181,7 +181,7 @@ WeatherLink Live™ is a trademark of Davis Instruments.
 
 ## Automated tests
 
-The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 4 with the Visual Studio NUnit adapter) and `WeatherLinkLiveCrestronDriver.ProcessorTests` (a standalone Crestron Home Utility test package). The 40 offline tests exercise driver logic without credentials or real device commands. The 16 processor lifecycle cases are excluded on Windows in this project; the dedicated desktop SDK harness exercises the same fixture sources.
+The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 4 with the Visual Studio NUnit adapter) and `WeatherLinkLiveCrestronDriver.ProcessorTests` (a standalone Crestron Home Utility test package). The offline tests exercise driver logic without credentials or real device commands. The processor lifecycle cases are excluded on Windows in this project; the dedicated desktop SDK harness exercises the same fixture sources.
 
 ```powershell
 dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release
@@ -196,7 +196,7 @@ Cover local readings, failure cache retention, cloud refresh throttling and dela
 
 Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
 
-The current package contains **40 offline tests**, **16 SDK entity/lifecycle tests** and **3 optional live weather station tests**. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. Unit and lifecycle fixtures use synthetic data. Live fixtures read a real station and verify measured readings, repeated refresh and unit selection on a new test entity, without changing station settings.
+The current package contains offline tests, SDK entity/lifecycle tests and optional live weather station tests. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. Unit and lifecycle fixtures use synthetic data. Live fixtures read a real station and verify measured readings, repeated refresh and unit selection on a new test entity, without changing station settings.
 
 For live tests, copy `WeatherLinkLiveCrestronDriver.Tests/LiveTestSettings.example.json` to a private `LiveTestSettings.json` and supply `ipAddress`. The desktop SDK harness reads it from `%LOCALAPPDATA%/WeatherLinkLive`, or from the NUnit `TestDataDirectory` parameter. Set `enabled` to `true` for local testing, or supply `EnableLiveTests=true`; `EnableLiveTests=false` always disables it. On the processor, upload the file through **Test inputs** and select **Live Weather Station**. See the [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md). Keep private inputs outside the repository or exclude them through `.git/info/exclude`; never include them in packages.
 
@@ -241,3 +241,4 @@ The solution includes [WeatherLinkLiveCrestronDriver.WorkflowTests](WeatherLinkL
 The publish/release workflows support an explicit manual override when the processor or local self-hosted GitHub Actions runner is unavailable. Select `skip_hardware_checks` and provide a single-line `hardware_skip_reason`. Use the workflow's normal source and version controls. The override applies only to that invocation and is recorded with the exact source revision in its warning and job summary; it does not create a passing hardware-test result.
 
 GitHub-hosted validation remains mandatory for the checked-out source, and the normal build, tests and packaging steps still run. Wait for the configured hosted workflows to pass, or run them on the same source revision first. None of these hosted checks needs the local runner or processor. Automatic tag/release-triggered runs retain the normal hardware checks; use a manual invocation of the updated release workflow when an offline override is needed.
+The package includes the [driver help file](WeatherLinkLiveCrestronDriver/IncludeInPkg/NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pdf) and [third-party licence notices](WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt). The package filename is `NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg`; its existing driver identity is preserved for updates.

@@ -3,7 +3,7 @@
   "packageType": "CrestronHomeDriver",
   "driverPlatform": "Crestron Home",
   "payloadType": "pkg",
-  "payloadFile": "WeatherlinkLiveCrestronDriver.pkg",
+  "payloadFile": "NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg",
   "containsManagedDllPayload": false,
   "packageId": "CrestronHomeDriver.WeatherLinkLive.WeatherStation",
   "packageVersion": "$packageVersion$",

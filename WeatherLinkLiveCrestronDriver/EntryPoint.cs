@@ -17,7 +17,7 @@ public sealed class EntryPoint : DriverAssemblyEntryPoint
 	/// <inheritdoc/>
 	public override DriverController CreateDriverControllerInstance (DriverControllerCreationArgs args)
 		{
-		var resources = DriverImplementationResources.FromCreationArgs (args, typeof (EntryPoint));
+		var resources = DriverImplementationResources.FromCreationArgs (args, typeof (EntryPoint), "WeatherlinkLive.CrestronDriver.WeatherlinkLiveCrestronDriver.json");
 		var driver = new WeatherStationDriver (args, resources);
 		var rootEntity = new ConfigurableDriverEntity (driver.ControllerId, driver, driver.ConfigurationController);
 		return new DispatchingDeviceController (rootEntity, args, null);

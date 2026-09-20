@@ -1004,17 +1004,25 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 		string description = GetPrimaryWeatherDescription (fallbackCurrent?.Weather);
 		string icon = fallbackCurrent?.Weather?.Icon;
+		double? windSpeed = fallbackCurrent?.Wind?.Speed;
+		// OpenWeather metric wind is m/s, while the UI uses kph or UK mph.
+		if (OpenWeatherUnits == "metric")
+			windSpeed *= UseMetricWindUnits ? 3.6 : 3.6 / 1.609344;
+		double? rainRate = fallbackCurrent?.Rain?.OneHour;
+		// OpenWeather precipitation remains millimetres even in imperial mode.
+		if (!UseMetricRainUnits)
+			rainRate /= 25.4;
 
 		return new WeatherSnapshot
 			{
 			Temperature = fallbackCurrent?.Main?.Temperature,
 			Humidity = fallbackCurrent?.Main?.Humidity,
-			WindSpeed = fallbackCurrent?.Wind?.Speed,
+			WindSpeed = windSpeed,
 			WindGust = null,
 			WindDirection = fallbackCurrent?.Wind?.Degree.HasValue == true ? fallbackCurrent.Wind.Degree.Value.ToString ("0", CultureInfo.InvariantCulture) + "°" : string.Empty,
 			Pressure = fallbackCurrent?.Main?.Pressure,
 			PressureTrend = null,
-			RainRate = fallbackCurrent?.Rain?.OneHour,
+			RainRate = rainRate,
 			RainLast24Hours = null,
 			Description = description,
 			IconCode = icon,
@@ -1319,9 +1327,20 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		: "Humidity --";
 
 	private static string BuildPressureSummary (WeatherSnapshot current, bool isMetricUnits)
-	=> current.Pressure.HasValue
-		? "Pressure " + current.Pressure.Value.ToString ("0.0", CultureInfo.InvariantCulture) + " " + GetPressureUnit (isMetricUnits) + FormatPressureTrend (current.PressureTrend)
-		: "Pressure --";
+		{
+		if (!current.Pressure.HasValue)
+			return "Pressure --";
+
+		const double HECTOPASCALS_PER_INCH_OF_MERCURY = 33.8638866667;
+		double pressure = current.Pressure.Value;
+		// Local metric readings are mmHg; cloud readings are always hPa.
+		if (current.IsLocalCurrent && isMetricUnits)
+			pressure = pressure / 25.4 * HECTOPASCALS_PER_INCH_OF_MERCURY;
+		else if (!current.IsLocalCurrent && !isMetricUnits)
+			pressure /= HECTOPASCALS_PER_INCH_OF_MERCURY;
+
+		return "Pressure " + pressure.ToString ("0.0", CultureInfo.InvariantCulture) + " " + GetPressureUnit (isMetricUnits) + FormatPressureTrend (current.PressureTrend);
+		}
 
 	private static string BuildWindSummary (WeatherSnapshot current, bool isMetricUnits)
 	=> current.WindSpeed.HasValue

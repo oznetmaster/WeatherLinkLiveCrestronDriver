@@ -16,9 +16,9 @@ The package appears at `bin/Debug/net472/WeatherLinkLiveCrestronDriver.Processor
 
 ## Suites
 
-- **Unit Tests**: 40 offline driver cases. Run on Windows through the NUnit Visual Studio adapter or on the processor. No account credentials or physical devices are needed.
-- **Processor Lifecycle**: 16 SDK lifecycle checks. Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API. Run these separately on the processor; the shared desktop harness provides additional validation.
-- **Live Weather Station**: 3 optional read-only checks against a real WeatherLink Live station. Verify measured temperature and humidity, repeated refresh and unit selection on a newly constructed test entity.
+- **Unit Tests**: Offline driver cases, including pressure-unit conversion. Run on Windows through the NUnit Visual Studio adapter or on the processor. No account credentials or physical devices are needed.
+- **Processor Lifecycle**: SDK lifecycle checks, including cloud wind and rainfall conversion. Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API. Run these separately on the processor; the shared desktop harness provides additional validation.
+- **Live Weather Station**: Optional read-only checks against a real WeatherLink Live station. Verify measured temperature and humidity, repeated refresh and unit selection on a newly constructed test entity.
 
 Use the Windows runner's **Find packages**, select this package, connect, then select a suite and **Run all**. Discovery uses a dynamically assigned port. The standalone tile exposes the same suites and results. Nothing runs automatically on deployment. Original driver assets are under `DriverTestData`; the test tile's assets retain their own root paths.
 
@@ -31,7 +31,7 @@ This project targets only `net472`. It is not packable or publishable to NuGet. 
 
 Coordinate overrides must be paired and valid; rejected configuration cannot start network work or replace active location; clearing configuration discards pending edits. The desktop harness injects a synthetic location while the normal constructor still uses the processor location API.
 
-The package contains 40 offline cases, 16 lifecycle cases and 3 optional live cases. Lifecycle and live tests exercise newly constructed test entities; checking the installed production instance is a separate workflow stage. Suites are selectable in the Windows runner and through the standalone Utility tile; the live suite requires private inputs uploaded from the runner.
+The package contains offline, lifecycle and optional live suites. Lifecycle and live tests exercise newly constructed test entities; checking the installed production instance is a separate workflow stage. Suites are selectable in the Windows runner and through the standalone Utility tile; the live suite requires private inputs uploaded from the runner.
 
 
 Hosted and release validation compare the exact discovered test identities with execution results and the merged package, rather than maintaining a duplicate expected test count. Live tests are discovered but not operated in hosted CI. Only documented processor-runtime skips are accepted by the Windows net472 check; the desktop SDK harness must execute every automatic test successfully.

@@ -6,19 +6,22 @@
       "Id": "unit",
       "Name": "WeatherLinkLiveCrestronDriver Tests  -  Unit Tests",
       "FilterXml": "<filter><and><namespace re='1'>^WeatherLinkLiveCrestronDriver[.]Tests($|[.])</namespace><not><cat>Processor</cat></not></and></filter>",
-      "ManualOnly": false
+      "ManualOnly": false,
+      "ExpectedCount": 46
     },
     {
       "Id": "lifecycle",
       "Name": "WeatherLinkLiveCrestronDriver Tests  -  Processor Lifecycle",
       "FilterXml": "<filter><and><cat>Processor</cat><not><cat>Live</cat></not></and></filter>",
-      "ManualOnly": false
+      "ManualOnly": false,
+      "ExpectedCount": 19
     },
     {
       "Id": "live",
       "Name": "WeatherLinkLiveCrestronDriver Tests - Live Station",
       "FilterXml": "<filter><cat>Live</cat></filter>",
-      "ManualOnly": true
+      "ManualOnly": true,
+      "ExpectedCount": 3
     }
   ]
 }

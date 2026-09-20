@@ -9,6 +9,7 @@ Licensed under the MIT License with Commons Clause. See LICENSE in the repositor
     <_DriverPackageVersionOverride>$(PackageVersion)</_DriverPackageVersionOverride>
     <DriverManifestFile Condition="'$(DriverManifestFile)' == ''">$(MSBuildThisFileDirectory)WeatherlinkLiveCrestronDriver.json</DriverManifestFile>
     <DriverManifestVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(DriverManifestFile)')), '&quot;DriverVersion&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</DriverManifestVersion>
+    <DriverReleaseVersion Condition="'$(DriverReleaseVersion)' == ''">$([System.Version]::Parse('$(DriverManifestVersion)').ToString(3))</DriverReleaseVersion>
     <Version>$([System.Version]::Parse('$(DriverManifestVersion)').ToString(3))</Version>
     <Version Condition="'$(Configuration)' == 'Debug'">$([System.Version]::Parse('$(DriverManifestVersion)').ToString(4))</Version>
     <PackageVersion Condition="'$(_DriverPackageVersionOverride)' == ''">$(Version)</PackageVersion>
@@ -18,6 +19,7 @@ Licensed under the MIT License with Commons Clause. See LICENSE in the repositor
   <Target Name="RefreshDriverVersionProperties" AfterTargets="BumpDriverVersion" BeforeTargets="GenerateNuspec">
     <PropertyGroup>
       <DriverManifestVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(DriverManifestFile)')), '&quot;DriverVersion&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</DriverManifestVersion>
+      <DriverReleaseVersion Condition="'$(DriverReleaseVersion)' == ''">$([System.Version]::Parse('$(DriverManifestVersion)').ToString(3))</DriverReleaseVersion>
       <Version>$([System.Version]::Parse('$(DriverManifestVersion)').ToString(3))</Version>
       <Version Condition="'$(Configuration)' == 'Debug'">$([System.Version]::Parse('$(DriverManifestVersion)').ToString(4))</Version>
       <PackageVersion Condition="'$(_DriverPackageVersionOverride)' == ''">$(Version)</PackageVersion>

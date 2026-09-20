@@ -4,7 +4,8 @@
 param(
     [Parameter(Mandatory)][string] $PackagePath,
     [Parameter(Mandatory)][string] $ManifestPath,
-    [Parameter(Mandatory)][string] $ReleaseVersion
+    [Parameter(Mandatory)][string] $ReleaseVersion,
+    [string] $ProductAssetsDirectory
 )
 $ErrorActionPreference = 'Stop'
 if ($ReleaseVersion -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-[0-9A-Za-z.-]+)?$') {
@@ -23,6 +24,23 @@ try {
     $packageVersion = [version]$metadata.driverVersion
     if ($packageVersion -ne $expected -or $manifestVersion -ne $expected) {
         throw "Release '$ReleaseVersion' requires driver '$expected'; source manifest '$manifestVersion', built package '$packageVersion'."
+    }
+    if ($ProductAssetsDirectory) {
+        $names = @($zip.Entries | ForEach-Object FullName)
+        if (@($names | Where-Object { $_.Contains('\') }).Count -or @($names | Sort-Object -Unique).Count -ne $names.Count) {
+            throw 'Package contains backslash or duplicate entry names.'
+        }
+        $helpName = [IO.Path]::GetFileNameWithoutExtension($PackagePath) + '.pdf'
+        foreach ($name in @($helpName, 'THIRD-PARTY-NOTICES.txt')) {
+            $source = Join-Path $ProductAssetsDirectory $name
+            $entry = $zip.GetEntry($name)
+            if (!(Test-Path -LiteralPath $source -PathType Leaf) -or $null -eq $entry) { throw "Missing product document: $name" }
+            $stream = $entry.Open()
+            $hash = [Security.Cryptography.SHA256]::Create()
+            try { $actual = [Convert]::ToHexString($hash.ComputeHash($stream)) }
+            finally { $hash.Dispose(); $stream.Dispose() }
+            if ($actual -ne (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash) { throw "Packaged product document differs from source: $name" }
+        }
     }
     Write-Host "Verified release $ReleaseVersion and built driver $packageVersion."
 } finally { $zip.Dispose() }

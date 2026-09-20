@@ -61,3 +61,6 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Keep generated licence text byte-for-byte identical to the packaged document.
+WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt -text -whitespace

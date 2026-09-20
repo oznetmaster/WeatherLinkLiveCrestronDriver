@@ -38,6 +38,20 @@ public sealed class RefreshLifecycleTests
 	private object Call (string name, params object[] args) => typeof (WeatherStationDriver).GetMethod (name, Private).Invoke (_driver, args);
 	private Task Cloud () => (Task)Call ("GetRequestedCloudWeatherSnapshotAsync", 56d, -5d, true, CancellationToken.None);
 	private static WeatherStationDriver.WeatherSnapshot Snapshot () => new () { Temperature = 18.5, Humidity = 65, IsLocalCurrent = true, SourceSummary = "Synthetic station" };
+	[TestCase ("metric", "Speed 36.0 kph", "Rate 25.4 mm/hr")]
+	[TestCase ("uk", "Speed 22.4 mph", "Rate 25.4 mm/hr")]
+	[TestCase ("imperial", "Speed 10.0 mph", "Rate 1.0 in/hr")]
+	public void CloudFallback_ConvertsProviderWindAndRainUnitsBeforeDisplay (string units, string wind, string rain)
+		{
+		Set ("_units", units);
+		var weather = new SimpleWeather.CurrentWeather ("{\"main\":{\"temp\":16,\"pressure\":1015.9166},\"wind\":{\"speed\":10},\"rain\":{\"1h\":25.4}}");
+		var cloud = new WeatherStationDriver.CloudWeatherSnapshot (null, weather, DateTime.UtcNow, "Synthetic location");
+		MethodInfo build = typeof (WeatherStationDriver).GetMethod ("BuildFallbackWeatherSnapshot", Private, null, new[] { typeof (WeatherStationDriver.CloudWeatherSnapshot) }, null);
+		var snapshot = (WeatherStationDriver.WeatherSnapshot)build.Invoke (_driver, new object[] { cloud });
+		Call ("ApplyWeatherState", snapshot, "Synthetic current conditions");
+		Assert.That (_driver.WindSummary, Is.EqualTo (wind));
+		Assert.That (_driver.RainRateSummary, Is.EqualTo (rain));
+		}
 	[Test]
 	public async Task LocalReadPublishesMeasuredTemperatureAndCachesSnapshot ()
 		{
