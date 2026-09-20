@@ -1,5 +1,13 @@
 # WeatherLinkLiveCrestronDriver Tests
 
+## 1.1.2
+
+- Add regression coverage for local and cloud pressure units, cloud wind and rainfall units, and the values displayed by the driver.
+- Build with CrestronHomeNUnit test-host SDK 1.12.1. Validate discovered test identities against the desktop suite instead of maintaining a separate expected-count constant.
+- Validate the unit, lifecycle and optional read-only live suites on a processor. Live tests require the station address in private inputs and do not change station settings.
+- Include temporary-instance and stored-package cleanup in automated test workflows. Home may retain a cached catalogue entry until its next planned reboot.
+- This test package is published on GitHub only; it is not a NuGet package.
+
 ## 1.1.1
 
 - Rebuild with CrestronHomeNUnit 1.2.1. Test execution now participates in the shared processor reservation used by the runner, Test Explorer, CLI and hardware CI.

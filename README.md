@@ -225,7 +225,7 @@ Run `pwsh -File tools/Test-DriverVersioning.ps1` to check these rules with tempo
 See [versioning details](docs/Versioning.md) for build, release and installed-instance verification rules.
 ### Desktop SDK dependency in CI
 
-The SDK's desktop manifest reader needs its `Newtonsoft.Json.Compact.dll` runtime dependency. Supply a local SDK/runtime copy through the `CompactJsonPath` MSBuild property (or private `DesktopTest.Local.props`). Maintainer CI restores the same verified copy from encrypted Actions secrets into its temporary directory; it is not committed, attached to release assets or included in processor packages. Fork pull requests do not receive these secrets and require a trusted maintainer validation run.
+The SDK's desktop manifest reader needs `Newtonsoft.Json.Compact.dll`. The public `Crestron.DeviceDrivers.ManifestUtil` 29.0.10 NuGet tool package includes it under `tools/net8.0/any`. Set `CompactJsonPath` to that file (or use private `DesktopTest.Local.props`). CI downloads and verifies this published dependency directly, so its offline tests do not require repository secrets. The DLL is not committed or included in processor packages.
 
 
 For automated local tests, processor tests and gated driver deployment, see the [Crestron Home NUnit CI development guide](https://github.com/oznetmaster/CrestronHomeNUnit/blob/HEAD/docs/ContinuousIntegration.md). It covers private configuration, live-test gates, install/update waits, results and optional test-package removal.

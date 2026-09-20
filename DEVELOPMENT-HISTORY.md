@@ -11,12 +11,13 @@ See the [product changelog](CHANGELOG.md) for shipped changes. This document pre
 
 <!-- development-history -->
 
-## Weather display and package validation - 2026-09-20 (pending driver release)
+## Weather display and package validation - 2026-09-21 (driver 2.0.16)
 
-- Add regression coverage for local pressure and cloud pressure, wind and rainfall units. Prepare corrections for a driver patch release.
+- Add regression coverage for local pressure and cloud pressure, wind and rainfall units.
 - Preserve the embedded driver definition when naming the output assembly explicitly; preserve the existing driver identity.
 - Include product help and merged-dependency notices in ordinary builds, and normalize archive entry names.
-- Use ManifestUtil 29.0.10 for driver releases and test-host SDK 1.12.1. Release validation compares discovered test identities instead of a duplicated test-count constant.
+- Obtain the desktop SDK helper from the public ManifestUtil 29.0.10 tool package instead of private Actions secrets.
+- Use ManifestUtil 29.0.10 for builds and test-host SDK 1.12.1. Release validation compares discovered test identities instead of a duplicated test-count constant.
 
 ## Offline release workflow option - 2026-09-15 (no package release)
 
