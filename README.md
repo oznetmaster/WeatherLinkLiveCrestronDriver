@@ -11,6 +11,8 @@ A **Crestron Home** extension driver that integrates a local **WeatherLink Live�
 
 Crestron and Crestron Home are trademarks or registered trademarks of Crestron Electronics, Inc. This project is not affiliated with, endorsed by, or sponsored by Crestron Electronics, Inc.
 
+WeatherLink and WeatherLink Live are trademarks of Davis Instruments Corp. This independent project is not affiliated with, endorsed by, or sponsored by Davis Instruments Corp.
+
 [![License: MIT + Commons Clause](https://img.shields.io/badge/License-MIT%20%2B%20Commons%20Clause-blue.svg)](LICENSE)
 
 ---
@@ -173,8 +175,6 @@ MIT + Commons Clause © 2026 Neil Colvin — see [LICENSE](LICENSE).
 
 Free to use and modify. You may not sell the Software as a standalone product or sublicense it.
 Commercial system integration work (for example, a Crestron installer commissioning a customer system) is explicitly permitted, even where a fee is charged for that service.
-
-WeatherLink Live™ is a trademark of Davis Instruments.
 
 > **Note:** This project references [Crestron.DeviceDrivers.DevKit](https://www.nuget.org/packages/Crestron.DeviceDrivers.DevKit),
 > which is subject to Crestron's SDK license agreement. That license governs the SDK libraries only;
