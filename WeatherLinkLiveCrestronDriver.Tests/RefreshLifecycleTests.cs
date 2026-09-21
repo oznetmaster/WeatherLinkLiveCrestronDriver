@@ -43,6 +43,8 @@ public sealed class RefreshLifecycleTests
 		new SimpleWeather.CurrentWeather ("{\"main\":{\"temp\":" + temperature.ToString (System.Globalization.CultureInfo.InvariantCulture) + ",\"pressure\":1015}}"), DateTime.UtcNow, "Synthetic location");
 	private void RequestFreshCloud ()
 		{
+		// Simulate the next allowed attempt without waiting ten minutes on hardware.
+		Set ("_lastCloudAttemptUtc", DateTime.UtcNow.AddMinutes (-11));
 		Set ("_forceCloudRefresh", true);
 		Set ("_forecastRequestPending", true);
 		}
@@ -108,6 +110,10 @@ public sealed class RefreshLifecycleTests
 		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("16.0"));
 		Assert.That (_driver.TileStatus, Does.EndWith (" failed"));
 		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent (17d)); };
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (reads, Is.EqualTo (2), "Failed attempts must remain throttled.");
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False, "Cached readings must not imply recovery before a successful retry.");
+		RequestFreshCloud ();
 		await TestSupport.Complete (Refresh (localOnly));
 		Assert.That (reads, Is.EqualTo (3));
 		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
@@ -206,6 +212,41 @@ public sealed class RefreshLifecycleTests
 		Assert.That (reads, Is.EqualTo (1));
 		Assert.That (Field ("_cloudWeatherSnapshot"), Is.SameAs (previous));
 		}
+	[TestCase (false)]
+	[TestCase (true)]
+	public async Task FailedCloudAttemptIsThrottledWithOrWithoutCachedWeather (bool cached)
+		{
+		if (cached) Set ("_cloudWeatherSnapshot", new WeatherStationDriver.CloudWeatherSnapshot (null, CloudCurrent ().CurrentWeather, DateTime.UtcNow.AddMinutes (-20), "Cached"));
+		Set ("_forecastRequestPending", true);
+		int reads = 0;
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; throw new InvalidOperationException ("Synthetic cloud failure"); };
+		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		object previous = Field ("_cloudWeatherSnapshot");
+		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		Assert.That (reads, Is.EqualTo (1), "Neither local polls nor repeated commands should repeat a failed cloud request immediately.");
+		Assert.That (Field ("_cloudWeatherSnapshot"), Is.SameAs (previous));
+		Assert.That (Field ("_forecastRequestPending"), Is.True, "Retry must remain pending for the next allowed interval.");
+		Set ("_lastCloudAttemptUtc", DateTime.UtcNow.AddMinutes (-11));
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent ()); };
+		await Cloud ();
+		Assert.That (reads, Is.EqualTo (2));
+		Assert.That (Field ("_forecastRequestPending"), Is.False);
+		}
+
+	[Test]
+	public async Task CloudBackoffDoesNotPreventLocalStationRefresh ()
+		{
+		Set ("_lastCloudAttemptUtc", DateTime.UtcNow);
+		Set ("_forecastRequestPending", true);
+		int cloudReads = 0;
+		_driver.CloudWeatherReader = (lat, lon, ct) => { cloudReads++; throw new InvalidOperationException ("Must remain throttled"); };
+		await Refresh (false);
+		Assert.That (cloudReads, Is.Zero);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("18.5"));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		}
+
 	[TestCase (false, false)]
 	[TestCase (true, false)]
 	[TestCase (false, true)]

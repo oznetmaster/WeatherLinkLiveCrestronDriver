@@ -74,6 +74,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private CloudWeatherSnapshot _cloudWeatherSnapshot;
 	private DateTime _lastCurrentWeatherRequestUtc;
 	private DateTime _lastForecastRequestUtc;
+	private DateTime _lastCloudAttemptUtc;
+	private bool _cloudAttemptFailed;
 	private DateTime _lastAutomaticCloudRefreshLocalDate;
 	private bool _forceCloudRefresh;
 	private bool _currentWeatherRequestPending;
@@ -619,6 +621,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 					_forecastRequestPending = false;
 					_lastCurrentWeatherRequestUtc = DateTime.MinValue;
 					_lastForecastRequestUtc = DateTime.MinValue;
+					_lastCloudAttemptUtc = DateTime.MinValue;
+					_cloudAttemptFailed = false;
 					}
 				SetUnavailableState ("Configuration cleared");
 				}
@@ -708,6 +712,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 				_forecastRequestPending = false;
 				_lastCurrentWeatherRequestUtc = DateTime.MinValue;
 				_lastForecastRequestUtc = DateTime.MinValue;
+				_lastCloudAttemptUtc = DateTime.MinValue;
+				_cloudAttemptFailed = false;
 				}
 			CurrentConditionsTitle = BuildCurrentConditionsTitle (null);
 			WeeklyForecastTitle = BuildWeeklyForecastTitle (null);
@@ -1071,8 +1077,11 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			Latitude = latitude,
 			Longitude = longitude
 			};
-		WeatherForecast forecast = await weatherController.GetWeatherForecastAsync (coordinates, OpenWeatherUnits, cancellationToken).ConfigureAwait (false);
-		CurrentWeather currentWeather = await weatherController.GetCurrentWeatherAsync (coordinates, OpenWeatherUnits, cancellationToken).ConfigureAwait (false);
+		// This UI uses daily forecasts only. Avoid paying for unused 4.0 hourly pages,
+		// and retrieve current/daily together in a single request on 3.0 accounts.
+		SimpleWeather.WeatherSnapshot weather = await weatherController.GetWeatherSnapshotAsync (coordinates, includeHourly: false, units: OpenWeatherUnits, cancellationToken: cancellationToken).ConfigureAwait (false);
+		WeatherForecast forecast = weather.Forecast;
+		CurrentWeather currentWeather = weather.CurrentWeather;
 		string locationName = currentWeather?.City;
 		if (string.IsNullOrWhiteSpace (locationName))
 			{
@@ -1117,12 +1126,25 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			return snapshot;
 			}
 
-		if (!forceCloudRefresh && snapshot != null && utcNow - snapshot.FetchedAtUtc < MinimumOpenWeatherRefreshInterval)
+		if (!_cloudAttemptFailed && !forceCloudRefresh && snapshot != null && utcNow - snapshot.FetchedAtUtc < MinimumOpenWeatherRefreshInterval)
 			{
 			DebugLog ("GetRequestedCloudWeatherSnapshotAsync: throttled; using cached snapshot fetched at " + snapshot.FetchedAtUtc.ToString ("o", CultureInfo.InvariantCulture) + '.');
 			return snapshot;
 			}
 
+		lock (_cloudWeatherLock)
+			{
+			// Limit attempts as well as successful refreshes. A failure halfway through
+			// a paginated request must not cause another charge on every local poll.
+			if (utcNow - _lastCloudAttemptUtc < MinimumOpenWeatherRefreshInterval)
+				{
+				if (_cloudAttemptFailed)
+					throw new InvalidOperationException ("Online weather refresh failed; waiting for the next allowed attempt.");
+				return _cloudWeatherSnapshot;
+				}
+			_lastCloudAttemptUtc = utcNow;
+			_cloudAttemptFailed = true;
+			}
 		DebugLog ("GetRequestedCloudWeatherSnapshotAsync: requesting cloud forecast/current snapshot.");
 		CloudWeatherSnapshot refreshedSnapshot = await (CloudWeatherReader ?? ReadCloudWeatherAsync) (latitude, longitude, cancellationToken).ConfigureAwait (false);
 
@@ -1136,6 +1158,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			lock (_cloudWeatherLock)
 				{
 				_cloudWeatherSnapshot = refreshedSnapshot;
+				_cloudAttemptFailed = false;
 				if (forecastRequested)
 					{
 					_forecastRequestPending = false;

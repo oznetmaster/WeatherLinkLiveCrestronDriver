@@ -11,6 +11,12 @@ See the [product changelog](CHANGELOG.md) for shipped changes. This document pre
 
 <!-- development-history -->
 
+## Cloud-service and dependency validation - 2026-09-21 (driver 2.0.18)
+
+- Cover combined current/daily requests, throttling of failed cloud attempts and cached-response availability.
+- Add a separate opt-in processor live-cloud suite using private `CloudTestSettings.json` inputs. It exercises the driver against the configured OpenWeather account without changing a physical weather station.
+- Validate the updated merged JSON and logging dependencies on the processor as well as the desktop SDK harness.
+
 ## WeatherLinkLiveCrestronDriver.ProcessorTests v1.1.3 - 2026-09-21
 
 Published processor test package on GitHub. This is a test-package release only; no driver or library NuGet package is published. See the matching package release notes for changes and validation.

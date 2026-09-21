@@ -64,3 +64,6 @@
 
 # Keep generated licence text byte-for-byte identical to the packaged document.
 WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt -text -whitespace
+
+# Preserve upstream dependency license text.
+WeatherLinkLiveCrestronDriver.ProcessorTests/licenses/* -text -whitespace

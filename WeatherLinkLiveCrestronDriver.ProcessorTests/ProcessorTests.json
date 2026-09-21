@@ -14,14 +14,21 @@
       "Name": "WeatherLinkLiveCrestronDriver Tests  -  Processor Lifecycle",
       "FilterXml": "<filter><and><cat>Processor</cat><not><cat>Live</cat></not></and></filter>",
       "ManualOnly": false,
-      "ExpectedCount": 37
+      "ExpectedCount": 40
     },
     {
       "Id": "live",
       "Name": "WeatherLinkLiveCrestronDriver Tests - Live Station",
-      "FilterXml": "<filter><cat>Live</cat></filter>",
+      "FilterXml": "<filter><and><cat>Live</cat><not><cat>LiveCloud</cat></not></and></filter>",
       "ManualOnly": true,
       "ExpectedCount": 3
+    },
+    {
+      "Id": "live-cloud",
+      "Name": "WeatherLinkLiveCrestronDriver Tests - Live Cloud Weather",
+      "FilterXml": "<filter><cat>LiveCloud</cat></filter>",
+      "ManualOnly": true,
+      "ExpectedCount": 1
     }
   ]
 }

@@ -1,5 +1,12 @@
 # WeatherLinkLiveCrestronDriver Tests
 
+## 1.1.4
+
+- Build with SimpleWeatherClient 2.0.0 and WeatherLinkLiveLibrary 2.0.0, using typed System.Text.Json responses and optional library logging.
+- Cover failed-cloud-attempt throttling and continued local readings during cloud backoff.
+- Add a separately selectable live-cloud suite. Supply private CloudTestSettings.json with the OpenWeather key and coordinates; requests count toward the account's usage.
+- This processor test package is published on GitHub only, not NuGet. It does not update the installed production driver.
+
 ## 1.1.3
 
 - Add regression tests for offline status, retained readings, empty cloud responses, source recovery, forecast-only failures and late failed requests after configuration is cleared.

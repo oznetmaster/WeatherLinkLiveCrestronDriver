@@ -2,6 +2,14 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
+## 2.0.18 - 2026-09-21
+
+- Support OpenWeather One Call 4.0 accounts through SimpleWeatherClient 2.0.0 while retaining existing One Call 3.0 subscriptions and free-endpoint fallback.
+- Fetch cloud current conditions and daily forecasts together, omitting unused hourly data. Limit cloud attempts, including failed attempts, to once per ten minutes between configuration changes.
+- Use WeatherLinkLiveLibrary 2.0.0 and typed System.Text.Json responses. Remove the full Newtonsoft.Json and log4net dependencies from the merged driver.
+
+[Release notes](release-notes/v2.0.18.md). Existing configuration fields and commands remain unchanged; no reconfiguration is required.
+
 ## 2.0.17 - 2026-09-21
 
 - Correct offline status when current-weather retrieval fails, retaining the last available readings and showing the refresh failure.

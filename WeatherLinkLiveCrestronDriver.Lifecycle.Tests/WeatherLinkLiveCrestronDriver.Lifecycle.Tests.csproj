@@ -11,8 +11,8 @@
     <Reference Include="Newtonsoft.Json.Compact" Condition="Exists('$(CompactJsonPath)')">
       <HintPath>$(CompactJsonPath)</HintPath><Private>true</Private>
     </Reference>
-    <PackageReference Include="WeatherLinkLiveLibrary" Version="1.0.3" />
-    <PackageReference Include="SimpleWeatherClient" Version="1.0.3" />
+    <PackageReference Include="WeatherLinkLiveLibrary" Version="2.0.0" />
+    <PackageReference Include="SimpleWeatherClient" Version="2.0.0" />
     <PackageReference Include="Crestron.DeviceDrivers.DevKit" Version="27.0.24" />
     <PackageReference Include="Crestron.SimplSharp.SDK.Library" Version="2.22.15" />
     <PackageReference Include="Hafner.Compatibility.MetaPackage" Version="1.9.0" />

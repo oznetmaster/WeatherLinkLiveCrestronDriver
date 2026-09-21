@@ -51,7 +51,7 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 |---|---|
 | Crestron Home processor | Running a firmware version compatible with extension drivers |
 | WeatherLink Live device | Optional but recommended for local current conditions |
-| OpenWeather API key | Required for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast. Existing One Call API 3.0 access is optional; this release does not support One Call 4.0. |
+| OpenWeather API key | Required for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast. Existing One Call API 3.0 access is optional. One Call API 4.0 subscriptions are also supported; no separate SimpleWeatherClient key is needed. |
 | Processor location or coordinate overrides | Native processor latitude/longitude must be configured, or supply both driver overrides |
 
 ---
@@ -74,7 +74,7 @@ Crestron Home Driver NuGet Publishing Standard v1 is **not** an official Crestro
 | Field | Description |
 |---|---|
 | WeatherLink Live Host | Optional. IP address or hostname of the local WeatherLink Live device |
-| OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast. When the key/account already has One Call API 3.0 access, the driver uses it; otherwise `SimpleWeatherClient` falls back to the free endpoints. This release does not support One Call 4.0. No separate `SimpleWeatherClient` key is needed. |
+| OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast. The driver prefers existing One Call API 3.0 access, tries 4.0 if 3.0 denies access, then falls back to free endpoints if 4.0 also denies access. An API key is not tied to an API version; access depends on the account subscriptions. No separate `SimpleWeatherClient` key is needed. |
 | Location Name Override | Optional. Overrides the title location name shown on the current conditions page |
 | Latitude Override | Optional. Leave blank to use the native processor latitude for cloud weather requests |
 | Longitude Override | Optional. Leave blank to use the native processor longitude for cloud weather requests |
@@ -111,7 +111,11 @@ The SDK caches its location values and documents that changing them requires a p
 - **Startup:** current conditions refresh immediately, and cloud forecast data is also initialized so forecast-related fields are populated
 - **Scheduled updates:** current conditions refresh on the configured interval
 - **Forecast button:** the forecast page can request a cloud refresh when needed
-- **Cloud throttling:** normal cloud requests are limited to once every 10 minutes, except for the daily post-00:01 refresh trigger
+- **Cloud throttling:** cloud request attempts are limited to once every 10 minutes, including failed attempts. Daily refreshes and repeated button requests wait for that interval. A failed refresh retains any old readings without treating them as successful recovery; local station polling continues independently.
+
+The driver requests current weather and daily forecasts together. Existing One Call 3.0 accounts use one successful weather request per cloud refresh. For 4.0, this normally takes two successful requests; hourly pages are not requested because the driver does not use them. Automatic 4.0 selection also makes a denied 3.0 probe, and location-name geocoding is separate. Multiple processors and other applications share the account's quota, so the ten-minute limit is not an account-wide billing cap.
+
+For new One Call customers, configure an OpenWeather 4.0 subscription. Existing 3.0 customers can continue using their existing access; OpenWeather states that 3.0 is not being switched off as part of the 4.0 release. See [OpenWeather's migration guide](https://openweathermap.org/api/one-call-3-migration). A free account remains sufficient for reduced current-weather and five-day forecast coverage.
 
 Online status describes the availability of current-weather data. A working cloud fallback can keep the driver online while the local station is unreachable. If current-weather retrieval fails with no usable fallback, the driver goes offline while retaining any last available readings with a failed-update status. A successful current-weather refresh restores online status. A forecast-only failure does not make fresh local current conditions offline.
 
@@ -203,6 +207,8 @@ Coordinate overrides must be paired and valid; rejected configuration cannot sta
 The current package contains offline tests, SDK entity/lifecycle tests and optional live weather station tests. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. Unit and lifecycle fixtures use synthetic data. Live fixtures read a real station and verify measured readings, repeated refresh and unit selection on a new test entity, without changing station settings.
 
 For live tests, copy `WeatherLinkLiveCrestronDriver.Tests/LiveTestSettings.example.json` to a private `LiveTestSettings.json` and supply `ipAddress`. The desktop SDK harness reads it from `%LOCALAPPDATA%/WeatherLinkLive`, or from the NUnit `TestDataDirectory` parameter. Set `enabled` to `true` for local testing, or supply `EnableLiveTests=true`; `EnableLiveTests=false` always disables it. On the processor, upload the file through **Test inputs** and select **Live Weather Station**. See the [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md). Keep private inputs outside the repository or exclude them through `.git/info/exclude`; never include them in packages.
+
+**Live Cloud Weather** is a separate optional suite. Copy `CloudTestSettings.example.json` from the test project to a private `CloudTestSettings.json`, supply the account API key and coordinates, and upload it through **Test inputs**. It reads current/daily cloud weather through a new driver test entity and verifies that an immediate refresh reuses the cached response. It does not change the installed driver or station. Local runs require `EnableLiveTests=true` and `TestDataDirectory` pointing to the private input directory. Cloud requests count toward the account's service usage.
 
 `WeatherLinkLiveCrestronDriver.Lifecycle.Tests` runs the entity checks against the real desktop SDK on .NET 10. It compiles the relevant driver sources and shares fixture sources with the net472 processor tests. Building this project does not deploy a driver. A locally supplied `Newtonsoft.Json.Compact.dll` is needed by the SDK's manifest reader; it is supplied by the processor at runtime and must not be added to source control or bundled with the processor test package.
 
