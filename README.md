@@ -51,7 +51,7 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 |---|---|
 | Crestron Home processor | Running a firmware version compatible with extension drivers |
 | WeatherLink Live device | Optional but recommended for local current conditions |
-| OpenWeather API key | Required for forecast data and cloud fallback current conditions |
+| OpenWeather API key | Required for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast; a One Call subscription is optional. |
 | Processor location or coordinate overrides | Native processor latitude/longitude must be configured, or supply both driver overrides |
 
 ---
@@ -74,7 +74,7 @@ Crestron Home Driver NuGet Publishing Standard v1 is **not** an official Crestro
 | Field | Description |
 |---|---|
 | WeatherLink Live Host | Optional. IP address or hostname of the local WeatherLink Live device |
-| OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions |
+| OpenWeather API Key | Required. Used for forecast data and cloud fallback current conditions. A free OpenWeather account is sufficient for current conditions and the reduced five-day forecast. A One Call subscription is optional; when unavailable, `SimpleWeatherClient` falls back to the free endpoints. No separate `SimpleWeatherClient` key is needed. |
 | Location Name Override | Optional. Overrides the title location name shown on the current conditions page |
 | Latitude Override | Optional. Leave blank to use the native processor latitude for cloud weather requests |
 | Longitude Override | Optional. Leave blank to use the native processor longitude for cloud weather requests |
