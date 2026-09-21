@@ -11,6 +11,10 @@ See the [product changelog](CHANGELOG.md) for shipped changes. This document pre
 
 <!-- development-history -->
 
+## WeatherLinkLiveCrestronDriver.ProcessorTests v1.1.3 - 2026-09-21
+
+Published processor test package on GitHub. This is a test-package release only; no driver or library NuGet package is published. See the matching package release notes for changes and validation.
+
 ## Current-weather availability validation - 2026-09-21 (driver 2.0.17)
 
 - Cover empty and failed current-weather responses, retained local/cloud readings, changed-value recovery, cloud cache reuse, forecast-only failures and late failed responses after configuration is cleared.
