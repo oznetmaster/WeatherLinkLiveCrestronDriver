@@ -24,6 +24,8 @@ Use the Windows runner's **Find packages**, select this package, connect, then s
 
 Unit and lifecycle suites use synthetic responses. The live suite reads the configured station without changing station settings. Copy the test project's `LiveTestSettings.example.json` to a private `LiveTestSettings.json`, supply `ipAddress`, and load it through the runner's **Test inputs** before selecting the live suite. Selecting that suite enables it for the run. Keep this file outside the repository or exclude it with `.git/info/exclude`; it is never part of the package.
 
+Live reads are spaced at least ten seconds apart to respect the [Davis local API polling guidance](https://github.com/weatherlink/weatherlink-live-local-api/blob/master/API.md). The three live tests normally need about a minute. They use the real station reader, report underlying read errors, and do not automatically retry failures.
+
 This project targets only `net472`. It is not packable or publishable to NuGet. See [third-party notices](THIRD-PARTY-NOTICES.md), the root LICENSE, and [runner documentation](https://github.com/oznetmaster/CrestronHomeNUnit#readme).
 
 

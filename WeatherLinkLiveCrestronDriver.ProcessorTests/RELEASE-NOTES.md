@@ -1,5 +1,12 @@
 # WeatherLinkLiveCrestronDriver Tests
 
+## 1.1.3
+
+- Add regression tests for offline status, retained readings, empty cloud responses, source recovery, forecast-only failures and late failed requests after configuration is cleared.
+- Space read-only live station requests at the documented ten-second interval and include the underlying station-read error in failures. Tests do not automatically retry failed reads.
+- Include the driver 2.0.17 availability fix in the test assembly. The production driver is independently installed and released.
+- This processor test package is published on GitHub only, not NuGet.
+
 ## 1.1.2
 
 - Add regression coverage for local and cloud pressure units, cloud wind and rainfall units, and the values displayed by the driver.

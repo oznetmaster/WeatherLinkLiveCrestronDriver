@@ -860,7 +860,16 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 				? "No WeatherLink Live host is configured; using cloud weather fallback."
 				: "WeatherLink Live is unavailable; using cloud weather fallback for this update.");
 			(double latitude, double longitude) = GetEffectiveCoordinates ();
-			CloudWeatherSnapshot cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
+			CloudWeatherSnapshot cloudWeather;
+			try
+				{
+				cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
+				}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+				PublishRefresh (generation, cancellationToken, () => ApplyFailedWeatherRefresh (ex));
+				return;
+				}
 			EnsureCurrentRefresh (generation, cancellationToken);
 			WeatherSnapshot fallbackCurrent = BuildFallbackWeatherSnapshot (cloudWeather);
 			if (fallbackCurrent != null)
@@ -874,7 +883,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 				if (localCurrent != null)
 					{
 					DebugLog ("RefreshLocalWeatherAsync: cloud fallback unavailable; applying cached local snapshot.");
-					PublishRefresh (generation, cancellationToken, () => ApplyWeatherState (MergeForecastIntoSnapshot (localCurrent, GetCachedCloudWeatherSnapshot ()), refreshStatus: BuildRefreshFailedSummary ()));
+					PublishRefresh (generation, cancellationToken, () => ApplyWeatherStateCore (MergeForecastIntoSnapshot (localCurrent, GetCachedCloudWeatherSnapshot ()), refreshStatus: BuildRefreshFailedSummary (), currentSourceAvailable: false));
 					}
 				else
 					{
@@ -925,9 +934,18 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		EnsureCurrentRefresh (generation, cancellationToken);
 		if (localCurrent != null)
 			{
-			CloudWeatherSnapshot cachedOrRequestedCloudWeather = forecastRequested
-				? await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: false, cancellationToken).ConfigureAwait (false)
-				: GetCachedCloudWeatherSnapshot ();
+			CloudWeatherSnapshot cachedOrRequestedCloudWeather;
+			try
+				{
+				cachedOrRequestedCloudWeather = forecastRequested
+					? await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: false, cancellationToken).ConfigureAwait (false)
+					: GetCachedCloudWeatherSnapshot ();
+				}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+				PublishRefresh (generation, cancellationToken, () => _lastStatus = ex.Message);
+				cachedOrRequestedCloudWeather = GetCachedCloudWeatherSnapshot ();
+				}
 
 			DebugLog ("RefreshWeatherAsync: applying local current snapshot after successful WeatherLink Live refresh.");
 			localCurrent = MergeForecastIntoSnapshot (localCurrent, cachedOrRequestedCloudWeather);
@@ -939,7 +957,16 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			? "No WeatherLink Live host is configured; using cloud weather fallback."
 			: "WeatherLink Live is unavailable; using cloud weather fallback for this update.");
 
-		CloudWeatherSnapshot cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
+		CloudWeatherSnapshot cloudWeather;
+		try
+			{
+			cloudWeather = await GetRequestedCloudWeatherSnapshotAsync (latitude, longitude, localCurrentRequired: true, cancellationToken).ConfigureAwait (false);
+			}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+			PublishRefresh (generation, cancellationToken, () => ApplyFailedWeatherRefresh (ex));
+			return;
+			}
 		EnsureCurrentRefresh (generation, cancellationToken);
 		WeatherSnapshot fallbackCurrent = BuildFallbackWeatherSnapshot (cloudWeather);
 		if (fallbackCurrent != null)
@@ -953,7 +980,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		if (localCurrent != null)
 			{
 			DebugLog ("RefreshWeatherAsync: cloud fallback unavailable; applying cached local snapshot.");
-			PublishRefresh (generation, cancellationToken, () => ApplyWeatherState (MergeForecastIntoSnapshot (localCurrent, cloudWeather), refreshStatus: BuildRefreshFailedSummary ()));
+			PublishRefresh (generation, cancellationToken, () => ApplyWeatherStateCore (MergeForecastIntoSnapshot (localCurrent, cloudWeather), refreshStatus: BuildRefreshFailedSummary (), currentSourceAvailable: false));
 			return;
 			}
 
@@ -1102,6 +1129,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		lock (_stateLock)
 			{
 			EnsureCurrentRefresh (generation, cancellationToken);
+			if (localCurrentRequired && refreshedSnapshot?.CurrentWeather == null)
+				{
+				throw new InvalidOperationException ("Cloud current weather is unavailable.");
+				}
 			lock (_cloudWeatherLock)
 				{
 				_cloudWeatherSnapshot = refreshedSnapshot;
@@ -1260,7 +1291,26 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			};
 		}
 
+	private void ApplyFailedWeatherRefresh (Exception error)
+		{
+		_lastStatus = error.Message;
+		CloudWeatherSnapshot cloud = GetCachedCloudWeatherSnapshot ();
+		WeatherSnapshot cached = GetCachedLocalWeatherSnapshot ();
+		cached = cached != null ? MergeForecastIntoSnapshot (cached, cloud) : BuildFallbackWeatherSnapshot (cloud);
+		if (cached == null)
+			{
+			SetUnavailableState ("Weather unavailable");
+			return;
+			}
+		ApplyWeatherStateCore (cached, BuildRefreshFailedSummary (), currentSourceAvailable: false);
+		}
+
 	private void ApplyWeatherState (WeatherSnapshot current, string refreshStatus)
+		{
+		ApplyWeatherStateCore (current, refreshStatus, currentSourceAvailable: true);
+		}
+
+	private void ApplyWeatherStateCore (WeatherSnapshot current, string refreshStatus, bool currentSourceAvailable)
 		{
 		string weatherIcon = MapWeatherIcon (current);
 		DebugLog ("ApplyWeatherState: source=" + (current?.SourceSummary ?? "<null>") + ", temp=" + (current?.Temperature.HasValue == true ? current.Temperature.Value.ToString (CultureInfo.InvariantCulture) : "<null>") + ", humidity=" + (current?.Humidity.HasValue == true ? current.Humidity.Value.ToString (CultureInfo.InvariantCulture) : "<null>") + ", forecastPresent=" + (current?.Forecast != null) + ", refreshStatus=" + (refreshStatus ?? "<null>") + '.');
@@ -1297,7 +1347,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			ForecastUpdatedSummary = BuildForecastUpdatedSummary (current.ForecastUpdatedUtc ?? DateTime.UtcNow);
 			ApplyForecastDays (current.Forecast);
 			}
-		OnlineIndicatorIsOnline = true;
+		OnlineIndicatorIsOnline = currentSourceAvailable;
 		ReadyIndicatorIsReady = true;
 		TryPublishUiDefinition ();
 		}
@@ -1561,7 +1611,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		ForecastDay5Title = string.Empty;
 		ForecastDay6Title = string.Empty;
 		ForecastDay7Title = string.Empty;
-		OnlineIndicatorIsOnline = true;
+		OnlineIndicatorIsOnline = false;
 		ReadyIndicatorIsReady = true;
 		TryPublishUiDefinition ();
 		}

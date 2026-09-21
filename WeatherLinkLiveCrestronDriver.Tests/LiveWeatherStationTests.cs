@@ -24,6 +24,7 @@ public sealed class LiveWeatherStationTests
 	{
 	private DriverLogger _logger;
 	private WeatherStationDriver _driver;
+	private string _localReadFailure;
 	private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
 
 	[SetUp]
@@ -53,7 +54,22 @@ public sealed class LiveWeatherStationTests
 		_driver = new WeatherStationDriver (new DriverControllerCreationArgs ("weather-live-test", TestSupport.DataDirectory, _logger.AppLogger, null), TestSupport.Resources (_logger), () => (0d, 0d));
 		Set ("_weatherLinkLiveHost", address);
 		Set ("_units", "metric");
-		// Leave LocalWeatherReader unset so the real library/network path is exercised.
+		// Observe failures from the real reader without replacing its library/network behavior.
+		_driver.LocalWeatherReader = async ct =>
+			{
+			try
+				{
+				// Fresh clients bypass the library's per-client cache. Davis supports one
+				// continuous local HTTP read every ten seconds; these tests run serially.
+				await Task.Delay (TimeSpan.FromSeconds (10), ct);
+				return await (Task<WeatherStationDriver.WeatherSnapshot>)typeof (WeatherStationDriver).GetMethod ("ReadLocalWeatherAsync", Private).Invoke (_driver, new object[] { ct });
+				}
+			catch (Exception ex)
+				{
+				_localReadFailure = ex.GetType ().Name + ": " + ex.Message;
+				throw;
+				}
+			};
 		}
 
 	[TearDown]
@@ -68,8 +84,10 @@ public sealed class LiveWeatherStationTests
 	private WeatherStationDriver.WeatherSnapshot Snapshot => (WeatherStationDriver.WeatherSnapshot)typeof (WeatherStationDriver).GetField ("_lastLocalWeatherSnapshot", Private).GetValue (_driver);
 	private async Task Refresh ()
 		{
+		_localReadFailure = null;
 		using var timeout = new CancellationTokenSource (TimeSpan.FromSeconds (30));
 		await (Task)typeof (WeatherStationDriver).GetMethod ("RefreshLocalWeatherAsync", Private).Invoke (_driver, new object[] { timeout.Token });
+		Assert.That (_localReadFailure, Is.Null, "The real local station read failed; cached or cloud data does not satisfy this test.");
 		Assert.That (Snapshot, Is.Not.Null, "The real local station must return a snapshot; cloud fallback does not satisfy this test.");
 		Assert.That (Snapshot.IsLocalCurrent, Is.True);
 		Assert.That (_driver.OnlineIndicatorIsOnline && _driver.ReadyIndicatorIsReady, Is.True);

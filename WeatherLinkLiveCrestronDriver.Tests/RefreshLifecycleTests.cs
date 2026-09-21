@@ -38,6 +38,131 @@ public sealed class RefreshLifecycleTests
 	private object Call (string name, params object[] args) => typeof (WeatherStationDriver).GetMethod (name, Private).Invoke (_driver, args);
 	private Task Cloud () => (Task)Call ("GetRequestedCloudWeatherSnapshotAsync", 56d, -5d, true, CancellationToken.None);
 	private static WeatherStationDriver.WeatherSnapshot Snapshot () => new () { Temperature = 18.5, Humidity = 65, IsLocalCurrent = true, SourceSummary = "Synthetic station" };
+	private Task Refresh (bool localOnly) => (Task)Call (localOnly ? "RefreshLocalWeatherAsync" : "RefreshWeatherAsync", CancellationToken.None);
+	private static WeatherStationDriver.CloudWeatherSnapshot CloudCurrent (double temperature = 16d) => new (null,
+		new SimpleWeather.CurrentWeather ("{\"main\":{\"temp\":" + temperature.ToString (System.Globalization.CultureInfo.InvariantCulture) + ",\"pressure\":1015}}"), DateTime.UtcNow, "Synthetic location");
+	private void RequestFreshCloud ()
+		{
+		Set ("_forceCloudRefresh", true);
+		Set ("_forecastRequestPending", true);
+		}
+	[TestCase (false, false)]
+	[TestCase (true, false)]
+	[TestCase (false, true)]
+	[TestCase (true, true)]
+	public async Task NoCurrentSourceReportsOfflineAndRecovers (bool localOnly, bool cloudThrows)
+		{
+		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		if (cloudThrows) _driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False);
+		Assert.That (_driver.ReadyIndicatorIsReady, Is.True);
+		Assert.That (_driver.TileStatus, Is.EqualTo ("Weather unavailable"));
+		Assert.That (_driver.CurrentTemperatureDisplay, Is.EqualTo ("--"));
+		RequestFreshCloud ();
+		_driver.CloudWeatherReader = (lat, lon, ct) => Task.FromResult (CloudCurrent ());
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("16.0"));
+		}
+	[TestCase (false, false)]
+	[TestCase (true, false)]
+	[TestCase (false, true)]
+	[TestCase (true, true)]
+	public async Task FailedSourcesRetainCachedLocalReadingsOfflineAndRecover (bool localOnly, bool cloudThrows)
+		{
+		await TestSupport.Complete (Refresh (localOnly));
+		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		if (cloudThrows) _driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
+		RequestFreshCloud ();
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("18.5"));
+		Assert.That (_driver.TileStatus, Does.EndWith (" failed"));
+		_driver.LocalWeatherReader = ct => Task.FromResult (new WeatherStationDriver.WeatherSnapshot { Temperature = 19.5, IsLocalCurrent = true });
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("19.5"));
+		Assert.That (_driver.TileStatus, Does.Not.EndWith (" failed"));
+		}
+	[TestCase (false, false)]
+	[TestCase (true, false)]
+	[TestCase (false, true)]
+	[TestCase (true, true)]
+	public async Task FailedCloudRequestRetainsHistoricalCloudReadingsOffline (bool localOnly, bool cloudThrows)
+		{
+		int reads = 0;
+		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent ()); };
+		await TestSupport.Complete (Refresh (localOnly));
+		RequestFreshCloud ();
+		_driver.CloudWeatherReader = (lat, lon, ct) =>
+			{
+			reads++;
+			if (cloudThrows) throw new InvalidOperationException ("Synthetic cloud unavailable");
+			return Task.FromResult (new WeatherStationDriver.CloudWeatherSnapshot (null, null, DateTime.UtcNow, "Synthetic location"));
+			};
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (reads, Is.EqualTo (2), "A real provider failure must be exercised rather than a throttled cache hit.");
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("16.0"));
+		Assert.That (_driver.TileStatus, Does.EndWith (" failed"));
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent (17d)); };
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (reads, Is.EqualTo (3));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("17.0"));
+		}
+	[TestCase (false)]
+	[TestCase (true)]
+	public async Task IntentionalCloudCacheReuseRemainsOnline (bool localOnly)
+		{
+		int reads = 0;
+		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent ()); };
+		await TestSupport.Complete (Refresh (localOnly));
+		await TestSupport.Complete (Refresh (localOnly));
+		Assert.That (reads, Is.EqualTo (1));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		}
+	[Test]
+	public async Task ForecastFailureDoesNotMakeFreshLocalCurrentOffline ()
+		{
+		RequestFreshCloud ();
+		_driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic forecast unavailable");
+		await TestSupport.Complete (Refresh (false));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.True);
+		Assert.That (_driver.CurrentTemperatureDisplay, Does.Contain ("18.5"));
+		}
+	[TestCase (false, false)]
+	[TestCase (true, false)]
+	[TestCase (false, true)]
+	public async Task LateCloudFailureCannotChangeClearedState (bool localOnly, bool localHealthy)
+		{
+		var entered = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
+		var release = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
+		if (!localHealthy) _driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		RequestFreshCloud ();
+		_driver.CloudWeatherReader = async (lat, lon, ct) => { entered.TrySetResult (true); await release.Task; throw new InvalidOperationException ("Synthetic late cloud failure"); };
+		Task refresh = Refresh (localOnly);
+		string status = null;
+		string tile = null;
+		bool online = false;
+		try
+			{
+			await TestSupport.Complete (entered.Task);
+			Call ("ApplyConfigurationItems", DataDrivenConfigurationController.ApplyConfigurationAction.ClearValues, null, null);
+			status = (string)Field ("_lastStatus");
+			tile = _driver.TileStatus;
+			online = _driver.OnlineIndicatorIsOnline;
+			}
+		finally { release.TrySetResult (true); }
+		Assert.ThrowsAsync<OperationCanceledException> (async () => await TestSupport.Complete (refresh));
+		Assert.That (Field ("_lastStatus"), Is.EqualTo (status));
+		Assert.That (_driver.TileStatus, Is.EqualTo (tile));
+		Assert.That (_driver.OnlineIndicatorIsOnline, Is.EqualTo (online));
+		Assert.That (Field ("_cloudWeatherSnapshot"), Is.Null);
+		}
 	[TestCase ("metric", "Speed 36.0 kph", "Rate 25.4 mm/hr")]
 	[TestCase ("uk", "Speed 22.4 mph", "Rate 25.4 mm/hr")]
 	[TestCase ("imperial", "Speed 10.0 mph", "Rate 1.0 in/hr")]
@@ -74,7 +199,7 @@ public sealed class RefreshLifecycleTests
 	public async Task RepeatedCloudRequestWithinMinimumIntervalUsesCachedResult ()
 		{
 		int reads = 0;
-		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (new WeatherStationDriver.CloudWeatherSnapshot (null, null, DateTime.UtcNow, "Synthetic location")); };
+		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; return Task.FromResult (CloudCurrent ()); };
 		await TestSupport.Complete (Cloud ());
 		object previous = Field ("_cloudWeatherSnapshot");
 		await TestSupport.Complete (Cloud ());

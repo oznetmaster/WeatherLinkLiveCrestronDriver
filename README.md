@@ -109,6 +109,8 @@ The SDK caches its location values and documents that changing them requires a p
 - **Forecast button:** the forecast page can request a cloud refresh when needed
 - **Cloud throttling:** normal cloud requests are limited to once every 10 minutes, except for the daily post-00:01 refresh trigger
 
+Online status describes the availability of current-weather data. A working cloud fallback can keep the driver online while the local station is unreachable. If current-weather retrieval fails with no usable fallback, the driver goes offline while retaining any last available readings with a failed-update status. A successful current-weather refresh restores online status. A forecast-only failure does not make fresh local current conditions offline.
+
 For tile icon selection, the driver prefers direct local numeric WeatherLink Live data whenever it is reliable:
 
 - local rain rate determines rain versus non-rain conditions

@@ -2,6 +2,13 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
+## 2.0.17 - 2026-09-21
+
+- Correct offline status when current-weather retrieval fails, retaining the last available readings and showing the refresh failure.
+- Restore online status after current-weather recovery, and keep fresh local conditions online when only forecast retrieval fails.
+
+[Release notes](release-notes/v2.0.17.md). Driver identity, configuration, commands and runtime dependencies are unchanged.
+
 ## 2.0.16 - 2026-09-21
 
 - Correct local metric pressure display (mmHg to hPa) and cloud pressure display in UK/Imperial mode (hPa to inHg).
