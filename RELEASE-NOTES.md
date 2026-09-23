@@ -3,3 +3,7 @@
 This documentation-only update corrects the bundled driver help's version-history and dependency/license descriptions. Runtime behavior, configuration, commands, and user interface are unchanged.
 
 Existing installations do not need reconfiguration. Updating the package replaces its embedded help with the corrected version.
+
+Support: https://oznetmaster.github.io/support/
+
+Source and documentation: https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver
