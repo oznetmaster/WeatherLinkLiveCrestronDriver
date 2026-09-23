@@ -2,6 +2,12 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
+## 2.0.19 - 2026-09-23
+
+- Correct the bundled driver-help version history and dependency/license references.
+
+[Release notes](release-notes/v2.0.19.md). Runtime behavior, configuration, commands and UI are unchanged.
+
 ## 2.0.18 - 2026-09-21
 
 - Support OpenWeather One Call 4.0 accounts through SimpleWeatherClient 2.0.0 while retaining existing One Call 3.0 subscriptions and free-endpoint fallback.
