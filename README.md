@@ -1,5 +1,18 @@
 # WeatherLinkLiveCrestronDriver
 
+## Crestron availability
+
+**Published by Crestron:** WeatherLink Live **2.0.19** was added to the Crestron production driver database on **25 September 2026** (catalog version `2.0.019.0000`).
+
+Look for the following entry in the Crestron Home driver catalog:
+
+| Field | Catalog entry |
+|---|---|
+| Developer | Neil Colvin |
+| Device type | Weather Station |
+| Manufacturer | WeatherLink Live |
+| Model | WeatherLink Live Weather Station |
+
 For shipped changes, see the [changelog](CHANGELOG.md). Test, CI and build history is recorded separately in [development and validation history](DEVELOPMENT-HISTORY.md).
 
 
@@ -58,7 +71,9 @@ The current-conditions path is designed to prefer the local WeatherLink Live dev
 
 ## Installation
 
-The best way to download and install this driver on a Crestron Home system is to use the [Crestron Home Driver Feed Installer](https://github.com/oznetmaster/Crestron-Home-Driver-Feed-Installer) repository and application.
+Version **2.0.19** is published in the Crestron production driver database. In the Crestron Home configuration UI, look for **WeatherLink Live Weather Station** under **WeatherLink Live** (developer **Neil Colvin**).
+
+For community-distributed releases, you can also use the [Crestron Home Driver Feed Installer](https://github.com/oznetmaster/Crestron-Home-Driver-Feed-Installer) repository and application. The GitHub and NuGet release histories are independent of the version listed by Crestron.
 
 If you prefer to install manually, use the attached `.pkg` asset from the relevant GitHub Release. The automatic GitHub `Source code (zip)` and `Source code (tar.gz)` assets are repository snapshots, not installable Crestron driver packages.
 

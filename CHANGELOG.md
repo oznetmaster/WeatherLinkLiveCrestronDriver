@@ -4,6 +4,8 @@ This changelog records shipped features, fixes, compatibility and runtime depend
 
 ## 2.0.19 - 2026-09-23
 
+Published in the Crestron production driver database on **25 September 2026** as `2.0.019.0000`.
+
 - Correct the bundled driver-help version history and dependency/license references.
 
 [Release notes](release-notes/v2.0.19.md). Runtime behavior, configuration, commands and UI are unchanged.
