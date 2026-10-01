@@ -7,7 +7,7 @@
       "Name": "WeatherLinkLiveCrestronDriver Tests  -  Unit Tests",
       "FilterXml": "<filter><and><namespace re='1'>^WeatherLinkLiveCrestronDriver[.]Tests($|[.])</namespace><not><cat>Processor</cat></not></and></filter>",
       "ManualOnly": false,
-      "ExpectedCount": 46
+      "ExpectedCount": 50
     },
     {
       "Id": "lifecycle",
@@ -19,7 +19,7 @@
     {
       "Id": "live",
       "Name": "WeatherLinkLiveCrestronDriver Tests - Live Station",
-      "FilterXml": "<filter><and><cat>Live</cat><not><cat>LiveCloud</cat></not></and></filter>",
+      "FilterXml": "<filter><and><cat>Live</cat><not><cat>LiveCloud</cat></not><not><cat>LiveRecovery</cat></not></and></filter>",
       "ManualOnly": true,
       "ExpectedCount": 3
     },
@@ -27,6 +27,13 @@
       "Id": "live-cloud",
       "Name": "WeatherLinkLiveCrestronDriver Tests - Live Cloud Weather",
       "FilterXml": "<filter><cat>LiveCloud</cat></filter>",
+      "ManualOnly": true,
+      "ExpectedCount": 1
+    },
+    {
+      "Id": "live-recovery",
+      "Name": "WeatherLinkLiveCrestronDriver Tests - Manual Station Network Recovery",
+      "FilterXml": "<filter><cat>LiveRecovery</cat></filter>",
       "ManualOnly": true,
       "ExpectedCount": 1
     }

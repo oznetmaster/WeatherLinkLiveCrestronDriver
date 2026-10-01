@@ -189,7 +189,7 @@ Commercial system integration work (for example, a Crestron installer commission
 
 ## Automated tests
 
-The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 4 with the Visual Studio NUnit adapter) and `WeatherLinkLiveCrestronDriver.ProcessorTests` (a standalone Crestron Home Utility test package). The offline tests exercise driver logic without credentials or real device commands. The processor lifecycle cases are excluded on Windows in this project; the dedicated desktop SDK harness exercises the same fixture sources.
+The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 5 with the Visual Studio NUnit adapter) and `WeatherLinkLiveCrestronDriver.ProcessorTests` (a standalone Crestron Home Utility test package). The offline tests exercise driver logic without credentials or real device commands. The processor lifecycle cases are excluded on Windows in this project; the dedicated desktop SDK harness exercises the same fixture sources.
 
 ```powershell
 dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release
@@ -252,3 +252,15 @@ The publish/release workflows support an explicit manual override when the proce
 
 GitHub-hosted validation remains mandatory for the checked-out source, and the normal build, tests and packaging steps still run. Wait for the configured hosted workflows to pass, or run them on the same source revision first. None of these hosted checks needs the local runner or processor. Automatic tag/release-triggered runs retain the normal hardware checks; use a manual invocation of the updated release workflow when an offline override is needed.
 The package includes the [driver help file](WeatherLinkLiveCrestronDriver/IncludeInPkg/NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pdf) and [third-party licence notices](WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt). The package filename is `NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg`; its existing driver identity is preserved for updates.
+## Local connection recovery (unreleased)
+
+The development driver retains one WeatherLink client. After loss of a previously working local station, the client retries after 10, 20, 30, 40, 50, 60 and 120 seconds, then every 300 seconds. A successful response resets the sequence and immediately restores local readings. Initial failure before any successful connection continues to use the configured refresh interval. Disconnect detection happens when a scheduled local request fails; this is not a continuous network probe.
+
+Two programmable entity events are available for Crestron Home Actions & Events:
+
+- **WeatherLink Disconnected** (`weatherLinkDisconnected`): once when the local station stops providing valid readings.
+- **WeatherLink Reconnected** (`weatherLinkReconnected`): once after valid readings return following a disconnect.
+
+These events concern the local WeatherLink station, even if cloud fallback keeps the driver online. They do not fire repeatedly during failed retries, on initial connection, or for normal configuration/disposal. Cloud request limits remain unchanged. Configuration changes dispose the old client and cancel its recovery.
+
+This change currently depends on the private `WeatherLinkLiveLibrary 2.1.0-preview.2` validation package and is not yet a published driver release.

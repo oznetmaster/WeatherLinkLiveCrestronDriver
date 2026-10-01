@@ -3,6 +3,8 @@
 
 using System;
 using System.IO;
+using System.Diagnostics;
+using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -125,5 +127,63 @@ public sealed class LiveWeatherStationTests
 		// Separate network snapshots may differ slightly as the station samples the weather.
 		Assert.That (Snapshot.Temperature.Value, Is.EqualTo (celsius * 1.8 + 32).Within (1.0));
 		Assert.That (_driver.CurrentTemperatureDisplay, Does.EndWith ("°F"));
+		}
+
+	// Separate opt-in suite: never interrupt the station during routine live reads.
+	[Test, Category ("LiveRecovery")]
+	public async Task RealStation_NetworkOutageRecoversWithoutDriverPolling ()
+		{
+		await Refresh ();
+		var client = (WeatherLinkLive.WeatherLinkLiveAPI.WeatherLinkLive)typeof (WeatherStationDriver).GetField ("_localWeatherClient", Private).GetValue (_driver);
+		Assert.That (client, Is.Not.Null);
+		var clock = Stopwatch.StartNew ();
+		var disconnected = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
+		var reconnected = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
+		int disconnectCount = 0, reconnectCount = 0;
+		var delays = new List<double> ();
+		var delayProperty = client.GetType ().GetProperty ("RecoveryDelayAsync", Private);
+		var originalDelay = (Func<TimeSpan, CancellationToken, Task>)delayProperty.GetValue (client);
+		delayProperty.SetValue (client, (Func<TimeSpan, CancellationToken, Task>)(async (delay, token) =>
+			{
+			lock (delays) delays.Add (delay.TotalSeconds);
+			TestContext.Progress.WriteLine ($"LIVE_RECOVERY retry-delay={delay.TotalSeconds}s elapsed={clock.Elapsed.TotalSeconds:F1}s UTC={DateTime.UtcNow:O}");
+			await originalDelay (delay, token);
+			}));
+		_driver.WeatherLinkDisconnected += (_, _) =>
+			{
+			Interlocked.Increment (ref disconnectCount);
+			TestContext.Progress.WriteLine ($"LIVE_RECOVERY DISCONNECTED: reconnect the station network cable; keep station power on. elapsed={clock.Elapsed.TotalSeconds:F1}s UTC={DateTime.UtcNow:O}");
+			disconnected.TrySetResult (true);
+			};
+		_driver.WeatherLinkReconnected += (_, _) =>
+			{
+			Interlocked.Increment (ref reconnectCount);
+			TestContext.Progress.WriteLine ($"LIVE_RECOVERY RECONNECTED elapsed={clock.Elapsed.TotalSeconds:F1}s UTC={DateTime.UtcNow:O}");
+			reconnected.TrySetResult (true);
+			};
+		TestContext.Progress.WriteLine ("LIVE_RECOVERY READY: real station read passed. Disconnect only the station network cable, leaving its power connected.");
+		using var timeout = new CancellationTokenSource (TimeSpan.FromMinutes (20));
+		while (!disconnected.Task.IsCompleted)
+			{
+			await (Task)typeof (WeatherStationDriver).GetMethod ("RefreshLocalWeatherAsync", Private).Invoke (_driver, new object[] { timeout.Token });
+			if (!disconnected.Task.IsCompleted) await Task.Delay (TimeSpan.FromSeconds (10), timeout.Token);
+			}
+		// No further driver reads: the real client recovery worker must reconnect itself.
+		Assert.That (await Task.WhenAny (reconnected.Task, Task.Delay (TimeSpan.FromMinutes (10), timeout.Token)), Is.SameAs (reconnected.Task), "Station did not recover. Restore its network before investigating.");
+		await reconnected.Task;
+		Assert.Multiple (() =>
+			{
+			Assert.That (disconnectCount, Is.EqualTo (1));
+			Assert.That (reconnectCount, Is.EqualTo (1));
+			Assert.That (_driver.OnlineIndicatorIsOnline && _driver.ReadyIndicatorIsReady, Is.True);
+			Assert.That (Snapshot.IsLocalCurrent, Is.True);
+			Assert.That (typeof (WeatherStationDriver).GetField ("_localWeatherClient", Private).GetValue (_driver), Is.SameAs (client));
+			lock (delays)
+				{
+				Assert.That (delays.Count, Is.GreaterThan (0));
+				double[] expected = { 10, 20, 30, 40, 50, 60, 120 };
+				for (int i = 0; i < delays.Count; i++) Assert.That (delays[i], Is.EqualTo (i < expected.Length ? expected[i] : 300));
+				}
+			});
 		}
 	}

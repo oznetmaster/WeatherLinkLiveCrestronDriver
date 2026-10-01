@@ -1,4 +1,6 @@
 {
+  "Event_WeatherLinkDisconnected": "WeatherLink Disconnected",
+  "Event_WeatherLinkReconnected": "WeatherLink Reconnected",
   "CurrentConditionsPageTitle": "Current Conditions for %s",
   "CurrentTemperatureTitle": "Temperature",
   "WindTitle": "Wind",

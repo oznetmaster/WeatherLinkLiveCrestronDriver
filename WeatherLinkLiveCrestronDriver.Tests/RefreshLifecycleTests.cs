@@ -163,7 +163,7 @@ public sealed class RefreshLifecycleTests
 			online = _driver.OnlineIndicatorIsOnline;
 			}
 		finally { release.TrySetResult (true); }
-		Assert.ThrowsAsync<OperationCanceledException> (async () => await TestSupport.Complete (refresh));
+		await Assert.ThrowsAsync<OperationCanceledException> (async () => await TestSupport.Complete (refresh));
 		Assert.That (Field ("_lastStatus"), Is.EqualTo (status));
 		Assert.That (_driver.TileStatus, Is.EqualTo (tile));
 		Assert.That (_driver.OnlineIndicatorIsOnline, Is.EqualTo (online));
@@ -220,10 +220,10 @@ public sealed class RefreshLifecycleTests
 		Set ("_forecastRequestPending", true);
 		int reads = 0;
 		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; throw new InvalidOperationException ("Synthetic cloud failure"); };
-		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		await Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
 		object previous = Field ("_cloudWeatherSnapshot");
-		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
-		Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		await Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
+		await Assert.ThrowsAsync<InvalidOperationException> (async () => await Cloud ());
 		Assert.That (reads, Is.EqualTo (1), "Neither local polls nor repeated commands should repeat a failed cloud request immediately.");
 		Assert.That (Field ("_cloudWeatherSnapshot"), Is.SameAs (previous));
 		Assert.That (Field ("_forecastRequestPending"), Is.True, "Retry must remain pending for the next allowed interval.");

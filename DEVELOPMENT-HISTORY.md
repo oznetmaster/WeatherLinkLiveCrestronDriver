@@ -11,6 +11,10 @@ See the [product changelog](CHANGELOG.md) for shipped changes. This document pre
 
 <!-- development-history -->
 
+## Local dependency maintenance - 2026-09-22
+
+- Align unit, lifecycle and workflow test projects on Microsoft.NET.Test.Sdk 18.10.1. The driver runtime, Crestron SDK reference and deployed package are unchanged.
+
 ## Cloud-service and dependency validation - 2026-09-21 (driver 2.0.18)
 
 - Cover combined current/daily requests, throttling of failed cloud attempts and cached-response availability.
@@ -92,3 +96,13 @@ Published processor test package on GitHub. This is a test-package release only;
 - 40 offline NUnit tests pass on Windows; the actual packaged unit suite also passes twice in one process.
 
 - The processor lifecycle test is available for hardware validation and is skipped on Windows.
+
+## Unreleased local connection recovery — 2026-10-01
+
+- Retain one client per configuration and consume Disconnected/Reconnected events. Expose weatherLinkDisconnected and weatherLinkReconnected as programmable entity events, independent of cloud fallback.
+- Apply recovered readings immediately and prevent late cloud fallback from replacing them; ignore retired client callbacks and cancel recovery during disposal/reconfiguration.
+- Use private WeatherLinkLiveLibrary 2.1.0-preview.2. Runtime package not released or deployed.
+- Migrate lifecycle/processor test projects to NUnit 5.0.0 with awaited asynchronous assertions. HPNEIL: 90 desktop lifecycle cases passed; production net472 build passed. Processor .244: 50 unit and 40 lifecycle tests passed on NUnit 5, zero failures/skips, including the new recovery cases. Temporary test instance removed; original devices preserved.
+- Live station testing exposed a retained-client unit-preference mismatch; snapshots now apply current temperature/rain/wind/barometer preferences, with synthetic regression assertions.
+- Corrected candidate passed 94 processor .244 tests: 50 unit, 40 lifecycle, three real-station checks and one physical station network-cable recovery check. One disconnect/reconnect event each, actual 10/20/30-second backoff, current readings restored without driver refresh calls. Temporary test instance removed; production driver unchanged.
+- Add a separately selected manual live-recovery suite and its operating instructions. Routine live checks never request an outage.

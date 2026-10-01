@@ -50,6 +50,17 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private readonly object _cloudWeatherLock = new ();
 
 	private CancellationTokenSource _refreshCancellationTokenSource;
+	private WeatherLinkLiveClient _localWeatherClient;
+	private bool _localWeatherDisconnected;
+	internal Func<WeatherLinkLiveClient> LocalWeatherClientFactory { get; set; }
+
+	[EntityEvent (Id = "weatherLinkDisconnected", FriendlyName = "WeatherLink Disconnected", NameLocalizationKey = "Event_WeatherLinkDisconnected")]
+	[EntityEventMetadata (Programmable = true)]
+	public event EventHandler WeatherLinkDisconnected;
+
+	[EntityEvent (Id = "weatherLinkReconnected", FriendlyName = "WeatherLink Reconnected", NameLocalizationKey = "Event_WeatherLinkReconnected")]
+	[EntityEventMetadata (Programmable = true)]
+	public event EventHandler WeatherLinkReconnected;
 	private int _refreshInProgress;
 	private bool? _lastLocalCurrentAvailable;
 	private WeatherSnapshot _lastLocalWeatherSnapshot;
@@ -740,6 +751,15 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		lock (_stateLock)
 			{
 			System.Threading.Interlocked.Increment (ref _refreshGeneration);
+			WeatherLinkLiveClient localClient = _localWeatherClient;
+			_localWeatherClient = null;
+			_localWeatherDisconnected = false;
+			if (localClient != null)
+				{
+				localClient.Disconnected -= OnLocalWeatherDisconnected;
+				localClient.Reconnected -= OnLocalWeatherReconnected;
+				localClient.Dispose ();
+				}
 			lock (_syncLock)
 				{
 				try
@@ -1210,11 +1230,61 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private async Task<WeatherSnapshot> ReadLocalWeatherAsync (CancellationToken cancellationToken)
 		{
-		using var client = new WeatherLinkLiveClient (_weatherLinkLiveHost, WEATHERLINK_REFRESH_INTERVAL_SECONDS, WEATHERLINK_FORCE_REFRESH_INTERVAL_SECONDS, UseMetricTemperatureUnits, UseMetricRainUnits, UseMetricWindUnits, UseMetricBarometerUnits);
+		WeatherLinkLiveClient client;
+		lock (_stateLock)
+			{
+			cancellationToken.ThrowIfCancellationRequested ();
+			if (_localWeatherClient == null)
+				{
+				_localWeatherClient = LocalWeatherClientFactory?.Invoke () ?? new WeatherLinkLiveClient (_weatherLinkLiveHost, WEATHERLINK_REFRESH_INTERVAL_SECONDS, WEATHERLINK_FORCE_REFRESH_INTERVAL_SECONDS, UseMetricTemperatureUnits, UseMetricRainUnits, UseMetricWindUnits, UseMetricBarometerUnits);
+				_localWeatherClient.Disconnected += OnLocalWeatherDisconnected;
+				_localWeatherClient.Reconnected += OnLocalWeatherReconnected;
+				}
+			client = _localWeatherClient;
+			// The client's recovery loop owns attempts during an outage, including their timing.
+			if (_localWeatherDisconnected) throw new System.Net.Http.HttpRequestException ("WeatherLink Live is reconnecting.");
+			}
 		DebugLog ("TryGetLocalCurrentWeatherAsync: calling InitializeAsync.");
 		await client.InitializeAsync (cancellationToken).ConfigureAwait (false);
 		DebugLog ("TryGetLocalCurrentWeatherAsync: InitializeAsync completed.");
 		DebugLog ("WeatherLink Live refresh succeeded.");
+		return ReadLocalSnapshot (client);
+		}
+
+	private void OnLocalWeatherDisconnected (object sender, EventArgs args)
+		{
+		lock (_stateLock)
+			{
+			if (!ReferenceEquals (sender, _localWeatherClient) || _localWeatherDisconnected) return;
+			_localWeatherDisconnected = true;
+			_lastLocalCurrentAvailable = false;
+			_lastSourceSummary = "Source: WeatherLink Live unavailable";
+			WeatherLinkDisconnected?.Invoke (this, EventArgs.Empty);
+			}
+		}
+
+	private void OnLocalWeatherReconnected (object sender, EventArgs args)
+		{
+		lock (_stateLock)
+			{
+			if (!ReferenceEquals (sender, _localWeatherClient) || !_localWeatherDisconnected) return;
+			WeatherSnapshot snapshot = ReadLocalSnapshot (_localWeatherClient);
+			_localWeatherDisconnected = false;
+			_lastLocalCurrentAvailable = true;
+			_lastLocalWeatherSnapshot = snapshot;
+			_lastSourceSummary = snapshot.SourceSummary;
+			ApplyWeatherState (MergeForecastIntoSnapshot (snapshot, GetCachedCloudWeatherSnapshot ()), BuildUpdatedSummary ());
+			WeatherLinkReconnected?.Invoke (this, EventArgs.Empty);
+			}
+		}
+
+	private WeatherSnapshot ReadLocalSnapshot (WeatherLinkLiveClient client)
+		{
+		// Unit preferences apply to the retained client's readings as well as new clients.
+		client.CelciusTemperature = UseMetricTemperatureUnits;
+		client.MetricRain = UseMetricRainUnits;
+		client.MetricWind = UseMetricWindUnits;
+		client.MetricBarometer = UseMetricBarometerUnits;
 		var snapshot = new WeatherSnapshot
 			{
 			Temperature = client.Temperature,
@@ -1335,6 +1405,15 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private void ApplyWeatherStateCore (WeatherSnapshot current, string refreshStatus, bool currentSourceAvailable)
 		{
+		// A cloud request may finish after the client has already recovered. Do not replace
+		// its fresh readings or mark them unavailable with that older fallback result.
+		if (_lastLocalCurrentAvailable == true && _lastLocalWeatherSnapshot != null &&
+			(current?.IsLocalCurrent != true || !currentSourceAvailable))
+			{
+			current = MergeForecastIntoSnapshot (_lastLocalWeatherSnapshot, GetCachedCloudWeatherSnapshot ());
+			currentSourceAvailable = true;
+			refreshStatus = BuildUpdatedSummary ();
+			}
 		string weatherIcon = MapWeatherIcon (current);
 		DebugLog ("ApplyWeatherState: source=" + (current?.SourceSummary ?? "<null>") + ", temp=" + (current?.Temperature.HasValue == true ? current.Temperature.Value.ToString (CultureInfo.InvariantCulture) : "<null>") + ", humidity=" + (current?.Humidity.HasValue == true ? current.Humidity.Value.ToString (CultureInfo.InvariantCulture) : "<null>") + ", forecastPresent=" + (current?.Forecast != null) + ", refreshStatus=" + (refreshStatus ?? "<null>") + '.');
 		DebugLog (string.Format (
