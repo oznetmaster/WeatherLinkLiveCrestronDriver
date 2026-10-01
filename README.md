@@ -280,4 +280,4 @@ Two programmable entity events are available for Crestron Home Actions & Events:
 
 These events concern the local WeatherLink station, even if cloud fallback keeps the driver online. They do not fire repeatedly during failed retries, on initial connection, or for normal configuration/disposal. Cloud request limits remain unchanged. Configuration changes dispose the old client and cancel its recovery.
 
-Version 2.1.0 uses WeatherLinkLiveLibrary 2.1.0. Its GitHub release includes processor tests 1.2.0, using NUnit 5.0.0 and the released CrestronHomeNUnit 2.0.0 SDK. Test sources are included in the repository.
+Version 2.1.0 uses WeatherLinkLiveLibrary 2.1.0. Its GitHub release includes processor tests 1.2.1, using NUnit 5.0.0 and the released CrestronHomeNUnit 2.0.0 SDK. Test sources are included in the repository.
