@@ -122,8 +122,13 @@ jobs:
       - name: Build and validate processor test package
         shell: pwsh
         run: |
-          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:DeployAfterBuild=false "-p:ProcessorTestSdkRoot=$env:GITHUB_WORKSPACE\.test-sdk" "-p:ManifestUtilExe=${{ steps.manifestutil.outputs.exe_path }}"
+          [xml]$testProject = Get-Content WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -Raw
+          $testVersions = @($testProject.Project.PropertyGroup.Version | Where-Object { $_ })
+          if ($testVersions.Count -ne 1 -or $testVersions[0] -notmatch '^\d+\.\d+\.\d+$') { throw 'A single test-package release version is required.' }
+          $testVersion = [string]$testVersions[0]
+          dotnet build WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.csproj -c Release -p:BuildProcessorTestPackages=true -p:DeployAfterBuild=false "-p:ReleaseVersion=$testVersion" "-p:ProcessorTestSdkRoot=$env:GITHUB_WORKSPACE\.test-sdk" "-p:ManifestUtilExe=${{ steps.manifestutil.outputs.exe_path }}"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./tools/Assert-DriverPackageVersion.ps1 -PackagePath WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg -ManifestPath WeatherLinkLiveCrestronDriver.ProcessorTests/WeatherLinkLiveCrestronDriver.ProcessorTests.json -ReleaseVersion $testVersion
           $extracted = Join-Path $env:RUNNER_TEMP 'weatherlink-driver-tests'
           [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $PWD 'WeatherLinkLiveCrestronDriver.ProcessorTests/bin/Release/net472/WeatherLinkLiveCrestronDriver.ProcessorTests.pkg'), $extracted)
           ./tools/Test-DiscoveredCoverage.ps1 -Stage Package -SdkRoot ./.test-sdk -PackageAssembly (Join-Path $extracted 'WeatherLinkLiveCrestronDriver.ProcessorTests.dll') -SourceInventory TestResults/WeatherLinkLiveCrestronDriver.Lifecycle.Tests/inventory.json -ResultsDirectory TestResults

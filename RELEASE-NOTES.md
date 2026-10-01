@@ -8,7 +8,7 @@ This minor update restores local station readings automatically after an establi
 
 The candidate passed 94 checks on a Crestron processor: 90 unit/lifecycle checks, three real-station reading checks and a physical station-network recovery test. The cable test observed 10-, 20- and 30-second delays and one event per transition. Longer backoff delays are covered by offline tests. This does not represent a new endurance run or Crestron acceptance.
 
-The release includes processor test package **1.2.0**, built with released **CrestronHomeNUnit 2.0.0 / NUnit 5.0.0**. Its manual station network-recovery suite is separate from unattended tests. Repository desktop tests use NUnit3TestAdapter 6.3.0.
+The release includes processor test package **1.2.1**, built with released **CrestronHomeNUnit 2.0.0 / NUnit 5.0.0**. Its manual station network-recovery suite is separate from unattended tests. Repository desktop tests use NUnit3TestAdapter 6.3.0.
 
 This version is available from GitHub and NuGet. Crestron's catalog remains **2.0.19**; submission of this update is deferred.
 
