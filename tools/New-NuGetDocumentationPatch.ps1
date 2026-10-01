@@ -44,7 +44,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot record documentation source revision.' 
 $files = $nuspec.CreateElement('files', $nuspec.DocumentElement.NamespaceURI)
 foreach ($name in @('LICENSE', 'README.md', $payload, 'crestron-driver-package.json')) {
     $file = $nuspec.CreateElement('file', $nuspec.DocumentElement.NamespaceURI)
-    $file.SetAttribute('src', $name); $file.SetAttribute('target', '')
+    $file.SetAttribute('src', $name); $file.SetAttribute('target', $name)
     [void]$files.AppendChild($file)
 }
 [void]$nuspec.DocumentElement.AppendChild($files)
