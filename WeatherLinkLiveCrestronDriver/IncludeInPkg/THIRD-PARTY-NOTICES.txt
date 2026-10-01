@@ -4,10 +4,10 @@ Driver license documents: driver-license
 
 Merged dependency inventory (third-party terms remain applicable):
 
-WeatherLinkLiveLibrary 2.0.0 (WeatherLink Live Library.dll)
+WeatherLinkLiveLibrary 2.1.0 (WeatherLink Live Library.dll)
 Declared license: MIT
 Copyright (c) 2026 Neil Colvin (from the package license; nuspec copyright is unspecified).
-Documents: weatherlinklivelibrary-2.0.0-license, weatherlinklivelibrary-2.0.0-upstream-license
+Documents: weatherlinklivelibrary-2.1.0-license, weatherlinklivelibrary-2.1.0-upstream-license
 
 SimpleWeatherClient 2.0.0 (SimpleWeather.dll)
 Declared license: MIT
@@ -184,8 +184,8 @@ SOFTWARE.
 
 
 ========================================================================
-weatherlinklivelibrary-2.0.0-license
-Source: https://www.nuget.org/packages/WeatherLinkLiveLibrary/2.0.0
+weatherlinklivelibrary-2.1.0-license
+Source: https://www.nuget.org/packages/WeatherLinkLiveLibrary/2.1.0
 
 MIT License
 
@@ -211,8 +211,8 @@ SOFTWARE.
 
 
 ========================================================================
-weatherlinklivelibrary-2.0.0-upstream-license
-Source: https://raw.githubusercontent.com/oznetmaster/WeatherLinkLiveLibrary/4c89ff959f316fafd5b6e8f52d87fe3c5b50e23f/LICENSE
+weatherlinklivelibrary-2.1.0-upstream-license
+Source: https://raw.githubusercontent.com/oznetmaster/WeatherLinkLiveLibrary/v2.1.0/LICENSE
 
 MIT License
 

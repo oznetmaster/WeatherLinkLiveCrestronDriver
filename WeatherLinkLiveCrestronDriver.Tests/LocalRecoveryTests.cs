@@ -33,12 +33,13 @@ public sealed class LocalRecoveryTests
 		}
 	private static Task Refresh (WeatherStationDriver driver) => (Task)typeof (WeatherStationDriver).GetMethod ("RefreshWeatherAsync", Private).Invoke (driver, new object[] { CancellationToken.None });
 
+	[Category ("Processor")]
 	[TestCase (false)]
 	[TestCase (true)]
 	public async Task PersistentClient_RecoversAndPublishesProgrammableEventsWithoutDriverPolling (bool slowCloud)
 		{
 #if NETFRAMEWORK
-		if (Type.GetType ("Mono.Runtime") == null) Assert.Ignore ("Requires desktop SDK harness or processor runtime.");
+		if (Type.GetType ("Mono.Runtime") == null) Assert.Ignore ("Requires the SDK desktop harness or processor runtime.");
 #endif
 		using var logger = new DriverLogger ("weather-recovery-test");
 		using var driver = new WeatherStationDriver (new DriverControllerCreationArgs ("weather-recovery-test", TestSupport.DataDirectory, logger.AppLogger, null), TestSupport.Resources (logger), () => (56d, -5d));

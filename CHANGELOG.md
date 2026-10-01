@@ -2,6 +2,14 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
+## 2.1.0 - 2026-10-01
+
+- Add automatic local-station recovery and programmable disconnect/reconnect events through WeatherLinkLiveLibrary 2.1.0.
+- Restore fresh local readings immediately; retain unit preferences and reject late cloud or retired-client callbacks.
+- Existing configuration, commands and driver identity remain unchanged. This update has not been submitted to Crestron.
+
+[Release notes](release-notes/v2.1.0.md).
+
 ## 2.0.19 - 2026-09-23
 
 Published in the Crestron production driver database on **25 September 2026** as `2.0.019.0000`.

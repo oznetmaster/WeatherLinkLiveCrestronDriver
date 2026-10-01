@@ -1,5 +1,7 @@
 # WeatherLinkLiveCrestronDriver
 
+Version **2.1.0** is the GitHub/NuGet recovery update. It has **not yet been submitted to or published by Crestron**; the Crestron catalog version below remains 2.0.19.
+
 ## Crestron availability
 
 **Published by Crestron:** WeatherLink Live **2.0.19** was added to the Crestron production driver database on **25 September 2026** (catalog version `2.0.019.0000`).
@@ -13,12 +15,12 @@ Look for the following entry in the Crestron Home driver catalog:
 | Manufacturer | WeatherLink Live |
 | Model | WeatherLink Live Weather Station |
 
-For shipped changes, see the [changelog](CHANGELOG.md). Test, CI and build history is recorded separately in [development and validation history](DEVELOPMENT-HISTORY.md).
+For shipped changes, see the [changelog](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/CHANGELOG.md). Test, CI and build history is recorded separately in [development and validation history](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/DEVELOPMENT-HISTORY.md).
 
 
 The driver tile appears on the **Home screen only**. It is not displayed on room screens; its room assignment remains available for configuration.
 
-See the [changelog](CHANGELOG.md) for release history and the [release notes](RELEASE-NOTES.md) for the current driver update. Driver releases are made for runtime fixes or dependency changes; adding tests alone does not require a driver release.
+See the [changelog](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/CHANGELOG.md) for release history and the [release notes](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/RELEASE-NOTES.md) for the current driver update. Driver releases are made for runtime fixes or dependency changes; adding tests alone does not require a driver release.
 
 A **Crestron Home** extension driver that integrates a local **WeatherLink Live™** device for current conditions and uses **OpenWeather** cloud data for forecast information and fallback current conditions when the local device is unavailable.
 
@@ -192,7 +194,7 @@ Typical release flow:
 
 ## License
 
-MIT + Commons Clause © 2026 Neil Colvin — see [LICENSE](LICENSE).
+MIT + Commons Clause © 2026 Neil Colvin — see [LICENSE](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/LICENSE).
 
 Free to use and modify. You may not sell the Software as a standalone product or sublicense it.
 Commercial system integration work (for example, a Crestron installer commissioning a customer system) is explicitly permitted, even where a fee is charged for that service.
@@ -210,7 +212,7 @@ The solution includes `WeatherLinkLiveCrestronDriver.Tests` (NUnit 5 with the Vi
 dotnet test WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -c Release
 ```
 
-Build the processor project in Debug in Visual Studio to build and deploy using private deployment settings. See [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md) for setup, suites, tile operation and UI separation. Processor packages are not published to NuGet. See [CHANGELOG](CHANGELOG.md) for changes.
+Build the processor project in Debug in Visual Studio to build and deploy using private deployment settings. See [processor test instructions](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver.ProcessorTests/README.md) for setup, suites, tile operation and UI separation. Processor packages are not published to NuGet. See [CHANGELOG](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/CHANGELOG.md) for changes.
 
 
 ### Expanded driver behavior tests
@@ -221,7 +223,7 @@ Coordinate overrides must be paired and valid; rejected configuration cannot sta
 
 The current package contains offline tests, SDK entity/lifecycle tests and optional live weather station tests. The processor package remains **net472 only**, appears under **Utility** in Configure, and can run independently through its own tile or the Windows NUnit runner. Unit and lifecycle fixtures use synthetic data. Live fixtures read a real station and verify measured readings, repeated refresh and unit selection on a new test entity, without changing station settings.
 
-For live tests, copy `WeatherLinkLiveCrestronDriver.Tests/LiveTestSettings.example.json` to a private `LiveTestSettings.json` and supply `ipAddress`. The desktop SDK harness reads it from `%LOCALAPPDATA%/WeatherLinkLive`, or from the NUnit `TestDataDirectory` parameter. Set `enabled` to `true` for local testing, or supply `EnableLiveTests=true`; `EnableLiveTests=false` always disables it. On the processor, upload the file through **Test inputs** and select **Live Weather Station**. See the [processor test instructions](WeatherLinkLiveCrestronDriver.ProcessorTests/README.md). Keep private inputs outside the repository or exclude them through `.git/info/exclude`; never include them in packages.
+For live tests, copy `WeatherLinkLiveCrestronDriver.Tests/LiveTestSettings.example.json` to a private `LiveTestSettings.json` and supply `ipAddress`. The desktop SDK harness reads it from `%LOCALAPPDATA%/WeatherLinkLive`, or from the NUnit `TestDataDirectory` parameter. Set `enabled` to `true` for local testing, or supply `EnableLiveTests=true`; `EnableLiveTests=false` always disables it. On the processor, upload the file through **Test inputs** and select **Live Weather Station**. See the [processor test instructions](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver.ProcessorTests/README.md). Keep private inputs outside the repository or exclude them through `.git/info/exclude`; never include them in packages.
 
 **Live Cloud Weather** is a separate optional suite. Copy `CloudTestSettings.example.json` from the test project to a private `CloudTestSettings.json`, supply the account API key and coordinates, and upload it through **Test inputs**. It reads current/daily cloud weather through a new driver test entity and verifies that an immediate refresh reuses the cached response. It does not change the installed driver or station. Local runs require `EnableLiveTests=true` and `TestDataDirectory` pointing to the private input directory. Cloud requests count toward the account's service usage.
 
@@ -247,7 +249,7 @@ Deployment validation compares the exact built `.pkg` against the imported catal
 
 Run `pwsh -File tools/Test-DriverVersioning.ps1` to check these rules with temporary manifests; this does not change the working driver manifest or deploy anything.
 
-See [versioning details](docs/Versioning.md) for build, release and installed-instance verification rules.
+See [versioning details](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/docs/Versioning.md) for build, release and installed-instance verification rules.
 ### Desktop SDK dependency in CI
 
 The SDK's desktop manifest reader needs `Newtonsoft.Json.Compact.dll`. The public `Crestron.DeviceDrivers.ManifestUtil` 29.0.10 NuGet tool package includes it under `tools/net8.0/any`. Set `CompactJsonPath` to that file (or use private `DesktopTest.Local.props`). CI downloads and verifies this published dependency directly, so its offline tests do not require repository secrets. The DLL is not committed or included in processor packages.
@@ -255,18 +257,18 @@ The SDK's desktop manifest reader needs `Newtonsoft.Json.Compact.dll`. The publi
 
 For automated local tests, processor tests and gated driver deployment, see the [Crestron Home NUnit CI development guide](https://github.com/oznetmaster/CrestronHomeNUnit/blob/HEAD/docs/ContinuousIntegration.md). It covers private configuration, live-test gates, install/update waits, results and optional test-package removal.
 
-Local build/deployment overrides can be created by copying [WeatherLinkLiveCrestronDriver.Local.targets.example](WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.Local.targets.example) to `WeatherLinkLiveCrestronDriver.Local.targets` beside the project. Fill in your own paths privately and exclude the resulting local file with `.git/info/exclude`; it is not part of the published source.
+Local build/deployment overrides can be created by copying [WeatherLinkLiveCrestronDriver.Local.targets.example](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.Local.targets.example) to `WeatherLinkLiveCrestronDriver.Local.targets` beside the project. Fill in your own paths privately and exclude the resulting local file with `.git/info/exclude`; it is not part of the published source.
 
 ## Visual Studio processor workflow
 
-The solution includes [WeatherLinkLiveCrestronDriver.WorkflowTests](WeatherLinkLiveCrestronDriver.WorkflowTests/README.md), using the published Crestron Home Test Adapter. It exposes the complete gated workflow in Test Explorer while the ordinary NUnit fixtures remain available for local testing. Configure its private settings before execution; hosted CI verifies discovery without accessing hardware.
+The solution includes [WeatherLinkLiveCrestronDriver.WorkflowTests](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver.WorkflowTests/README.md), using the published Crestron Home Test Adapter. It exposes the complete gated workflow in Test Explorer while the ordinary NUnit fixtures remain available for local testing. Configure its private settings before execution; hosted CI verifies discovery without accessing hardware.
 
 ## Publishing when local hardware is unavailable
 
 The publish/release workflows support an explicit manual override when the processor or local self-hosted GitHub Actions runner is unavailable. Select `skip_hardware_checks` and provide a single-line `hardware_skip_reason`. Use the workflow's normal source and version controls. The override applies only to that invocation and is recorded with the exact source revision in its warning and job summary; it does not create a passing hardware-test result.
 
 GitHub-hosted validation remains mandatory for the checked-out source, and the normal build, tests and packaging steps still run. Wait for the configured hosted workflows to pass, or run them on the same source revision first. None of these hosted checks needs the local runner or processor. Automatic tag/release-triggered runs retain the normal hardware checks; use a manual invocation of the updated release workflow when an offline override is needed.
-The package includes the [driver help file](WeatherLinkLiveCrestronDriver/IncludeInPkg/NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pdf) and [third-party licence notices](WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt). The package filename is `NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg`; its existing driver identity is preserved for updates.
+The package includes the [driver help file](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver/IncludeInPkg/NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pdf) and [third-party licence notices](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/blob/master/WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt). The package filename is `NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg`; its existing driver identity is preserved for updates.
 ## Local connection recovery (unreleased)
 
 The development driver retains one WeatherLink client. After loss of a previously working local station, the client retries after 10, 20, 30, 40, 50, 60 and 120 seconds, then every 300 seconds. A successful response resets the sequence and immediately restores local readings. Initial failure before any successful connection continues to use the configured refresh interval. Disconnect detection happens when a scheduled local request fails; this is not a continuous network probe.
@@ -278,4 +280,4 @@ Two programmable entity events are available for Crestron Home Actions & Events:
 
 These events concern the local WeatherLink station, even if cloud fallback keeps the driver online. They do not fire repeatedly during failed retries, on initial connection, or for normal configuration/disposal. Cloud request limits remain unchanged. Configuration changes dispose the old client and cancel its recovery.
 
-This change currently depends on the private `WeatherLinkLiveLibrary 2.1.0-preview.2` validation package and is not yet a published driver release.
+Version 2.1.0 uses WeatherLinkLiveLibrary 2.1.0. Its GitHub release includes processor tests 1.2.0, using NUnit 5.0.0 and the released CrestronHomeNUnit 2.0.0 SDK. Test sources are included in the repository.
