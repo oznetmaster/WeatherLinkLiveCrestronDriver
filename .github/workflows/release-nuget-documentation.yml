@@ -1,0 +1,52 @@
+name: Release NuGet documentation patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: Existing public NuGet version
+        required: true
+        type: string
+      version:
+        description: Next NuGet patch version (driver payload stays unchanged)
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  checks: read
+  contents: write
+
+jobs:
+  documentation:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify configured release checks
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUIRED_RELEASE_CHECKS: ${{ vars.RELEASE_REQUIRED_CHECKS }}
+          REQUIRED_HOSTED_WORKFLOWS: '["tests.yml","workflow-discovery.yml"]'
+        run: '& ./.github/scripts/Wait-RequiredReleaseChecks.ps1'
+      - uses: NuGet/setup-nuget@v2
+      - name: Repack documentation without rebuilding the driver
+        shell: pwsh
+        env:
+          BASE_VERSION: ${{ inputs.base_version }}
+          PATCH_VERSION: ${{ inputs.version }}
+        run: ./tools/New-NuGetDocumentationPatch.ps1 -BaseVersion $env:BASE_VERSION -Version $env:PATCH_VERSION -OutputDirectory "$env:RUNNER_TEMP/documentation-patch"
+      - name: Publish the verified documentation patch
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NuGet publication key is not configured.' }
+          $package = Get-Item "$env:RUNNER_TEMP/documentation-patch/CrestronHomeDriver.WeatherLinkLive.WeatherStation.${{ inputs.version }}.nupkg"
+          nuget push $package.FullName -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json -NonInteractive
+          if ($LASTEXITCODE -ne 0) { throw 'NuGet publication failed.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-documentation-patch
+          path: ${{ runner.temp }}/documentation-patch/*.nupkg
+          if-no-files-found: error
