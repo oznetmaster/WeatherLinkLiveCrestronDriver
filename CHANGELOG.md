@@ -2,7 +2,7 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
-## 2.1.0 — 2026-10-01
+## [2.1.0](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.0) — 2026-10-01
 
 - Add automatic local-station recovery and programmable disconnect/reconnect events through WeatherLinkLiveLibrary 2.1.0.
 - Restore fresh local readings immediately; retain unit preferences and reject late cloud or retired-client callbacks.
@@ -10,7 +10,7 @@ This changelog records shipped features, fixes, compatibility and runtime depend
 
 [Release notes](release-notes/v2.1.0.md).
 
-## 2.0.19 — 2026-09-23
+## [2.0.19](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.19) — 2026-09-23
 
 Published in the Crestron production driver database on **25 September 2026** as `2.0.019.0000`.
 
@@ -18,7 +18,7 @@ Published in the Crestron production driver database on **25 September 2026** as
 
 [Release notes](release-notes/v2.0.19.md). Runtime behavior, configuration, commands and UI are unchanged.
 
-## 2.0.18 — 2026-09-21
+## [2.0.18](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.18) — 2026-09-21
 
 - Support OpenWeather One Call 4.0 accounts through SimpleWeatherClient 2.0.0 while retaining existing One Call 3.0 subscriptions and free-endpoint fallback.
 - Fetch cloud current conditions and daily forecasts together, omitting unused hourly data. Limit cloud attempts, including failed attempts, to once per ten minutes between configuration changes.
@@ -26,14 +26,14 @@ Published in the Crestron production driver database on **25 September 2026** as
 
 [Release notes](release-notes/v2.0.18.md). Existing configuration fields and commands remain unchanged; no reconfiguration is required.
 
-## 2.0.17 — 2026-09-21
+## [2.0.17](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.17) — 2026-09-21
 
 - Correct offline status when current-weather retrieval fails, retaining the last available readings and showing the refresh failure.
 - Restore online status after current-weather recovery, and keep fresh local conditions online when only forecast retrieval fails.
 
 [Release notes](release-notes/v2.0.17.md). Driver identity, configuration, commands and runtime dependencies are unchanged.
 
-## 2.0.16 — 2026-09-21
+## [2.0.16](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.16) — 2026-09-21
 
 - Correct local metric pressure display (mmHg to hPa) and cloud pressure display in UK/Imperial mode (hPa to inHg).
 - Correct cloud fallback wind units for Metric/UK and rainfall units for Imperial.
@@ -41,11 +41,11 @@ Published in the Crestron production driver database on **25 September 2026** as
 
 [Release notes](release-notes/v2.0.16.md). Driver identity, configuration and public commands are unchanged.
 
-## 2.0.14 — 2026-09-15
+## [2.0.14](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.14) — 2026-09-15
 
 - Correct the driver tile to appear on the Home screen only, rather than both Home and room screens. Room assignment, configuration and public commands are unchanged.
 
-## 2.0.13 — 2026-09-14
+## [2.0.13](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.13) — 2026-09-14
 
 [Driver release notes](RELEASE-NOTES.md). Test-only changes do not require a driver release.
 
@@ -53,7 +53,7 @@ Published in the Crestron production driver database on **25 September 2026** as
 
 - Reject NaN latitude and longitude overrides. The production constructor continues to read the processor location.
 
-## 2.0.12 — 2026-09-13
+## [2.0.12](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.0.12) — 2026-09-13
 
 - Update WeatherLinkLiveLibrary to 1.0.3, SimpleWeatherClient to 1.0.3 and the SIMPL# SDK library to 2.22.15.
 
