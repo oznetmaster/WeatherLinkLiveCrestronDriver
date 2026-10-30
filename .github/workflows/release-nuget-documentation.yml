@@ -17,6 +17,11 @@ permissions:
   checks: read
   contents: write
 
+concurrency:
+  group: public-release
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   documentation:
     runs-on: windows-latest
@@ -29,6 +34,13 @@ jobs:
           REQUIRED_RELEASE_CHECKS: ${{ vars.RELEASE_REQUIRED_CHECKS }}
           REQUIRED_HOSTED_WORKFLOWS: '["tests.yml","workflow-discovery.yml"]'
         run: '& ./.github/scripts/Wait-RequiredReleaseChecks.ps1'
+      - name: Verify shared release policy
+        uses: oznetmaster/CrestronHomeNUnit/.github/actions/release-validation@2ae8197c6685099c2133e7bb962d1f3568aae9c3
+        with:
+          required-checks: "${{ vars.RELEASE_REQUIRED_CHECKS }}"
+          hosted-workflows: "[\"tests.yml\",\"workflow-discovery.yml\"]"
+          skip-hardware-checks: "false"
+          hardware-skip-reason: ""
       - uses: NuGet/setup-nuget@v2
       - name: Repack documentation without rebuilding the driver
         shell: pwsh
