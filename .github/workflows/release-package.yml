@@ -3,6 +3,19 @@ name: Release Package
 on:
   workflow_dispatch:
     inputs:
+      skip_desktop_checks:
+        description: Reuse reviewed desktop results; package integrity checks still run
+        required: false
+        type: boolean
+        default: false
+      desktop_skip_reason:
+        description: Tested source, completion time, frameworks, counts and evidence
+        required: false
+        type: string
+      validation_commit:
+        description: Reuse recent CI from an ancestor SHA with only docs or release-automation changes
+        required: false
+        type: string
       skip_hardware_checks:
         description: Publish without hardware validation when the processor or local runner is unavailable
         required: false
@@ -47,7 +60,8 @@ jobs:
           REQUIRED_HOSTED_WORKFLOWS: '["tests.yml","workflow-discovery.yml"]'
           RELEASE_SKIP_HARDWARE_CHECKS: ${{ inputs.skip_hardware_checks }}
           RELEASE_HARDWARE_SKIP_REASON: ${{ inputs.hardware_skip_reason }}
-        run: '& ./.github/scripts/Wait-RequiredReleaseChecks.ps1'
+        run: |
+          Write-Output 'Configured checks are verified by the following shared-policy action.'
       - name: Verify shared release policy
         uses: oznetmaster/CrestronHomeNUnit/.github/actions/release-validation@2ae8197c6685099c2133e7bb962d1f3568aae9c3
         with:
@@ -55,6 +69,9 @@ jobs:
           hosted-workflows: "[\"tests.yml\",\"workflow-discovery.yml\"]"
           skip-hardware-checks: "${{ inputs.skip_hardware_checks }}"
           hardware-skip-reason: "${{ inputs.hardware_skip_reason }}"
+          skip-desktop-checks: "${{ inputs.skip_desktop_checks }}"
+          desktop-skip-reason: "${{ inputs.desktop_skip_reason }}"
+          validation-commit: "${{ inputs.validation_commit }}"
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -93,6 +110,7 @@ jobs:
           path: .test-sdk
 
       - name: Run driver unit tests
+        if: ${{ inputs.skip_desktop_checks != true }}
         shell: pwsh
         run: ./tools/Test-DiscoveredCoverage.ps1 -Stage Desktop -Project WeatherLinkLiveCrestronDriver.Tests/WeatherLinkLiveCrestronDriver.Tests.csproj -Framework net472 -AllowProcessorSkips -ResultsDirectory TestResults
       - name: Use the public desktop SDK dependency
@@ -103,6 +121,7 @@ jobs:
           if ((Get-FileHash -LiteralPath $compact -Algorithm SHA256).Hash -ne '8b9567057419e97b20702a4364283b0b5c34d5e00e006e329e1c92b74638ef90') { throw 'Unexpected desktop SDK dependency checksum.' }
           "CompactJsonPath=$compact" >> $env:GITHUB_ENV
       - name: Run desktop SDK lifecycle harness
+        if: ${{ inputs.skip_desktop_checks != true }}
         shell: pwsh
         run: |
           ./tools/Test-DiscoveredCoverage.ps1 -Stage Desktop -Project WeatherLinkLiveCrestronDriver.Lifecycle.Tests/WeatherLinkLiveCrestronDriver.Lifecycle.Tests.csproj -Framework net10.0 -ResultsDirectory TestResults
@@ -130,6 +149,29 @@ jobs:
         shell: pwsh
         run: |
           dotnet build WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj -c Release -p:ManifestUtilExe="${{ steps.manifestutil.outputs.exe_path }}" -p:LocalNet472ReferenceAssemblies="$env:NET472_REFERENCE_ASSEMBLIES" -p:LocalNetFxRuntimeDir="$env:NETFX_RUNTIME_DIR" -p:MergeDependenciesContinueOnError=false -p:PackageDriverContinueOnError=false -p:PackageDriverIgnoreExitCode=false -p:DriverReleaseVersion="${{ steps.package_version.outputs.driver }}"
+
+      - name: Discover current package inventory when reusing desktop tests
+        if: inputs.skip_desktop_checks == true
+        shell: pwsh
+        run: |
+          # Package verification still compares the new payload against current source discovery.
+          # Discovery does not execute the desktop suites or establish a new desktop pass.
+          $started = [DateTime]::UtcNow
+          dotnet test WeatherLinkLiveCrestronDriver.Lifecycle.Tests/WeatherLinkLiveCrestronDriver.Lifecycle.Tests.csproj -c Release --list-tests -p:DeployAfterBuild=false -- NUnit.DumpXmlTestDiscovery=true
+          if ($LASTEXITCODE) { throw 'Current source discovery failed.' }
+          $dump = Get-Item 'WeatherLinkLiveCrestronDriver.Lifecycle.Tests/bin/Release/net10.0/Dump/D_WeatherLinkLiveCrestronDriver.Lifecycle.Tests.dll.dump'
+          if ($dump.LastWriteTimeUtc -lt $started) { throw 'Discovery output is stale.' }
+          . ./tools/Test-DiscoveredCoverage.ps1
+          $inventory = @(Read-TestTree $dump.FullName -AdapterDump)
+          foreach ($category in @('unit','processor','live')) {
+            $selected = @($inventory | Where-Object { if ($category -eq 'live') { $_.Live } elseif ($category -eq 'processor') { $_.Processor -and !$_.Live } else { !$_.Processor -and !$_.Live } })
+            if (!$selected.Count) { throw "Expected a nonempty $category suite." }
+          }
+          $evidence = 'TestResults/WeatherLinkLiveCrestronDriver.Lifecycle.Tests'
+          if (Test-Path $evidence) { throw 'Current inventory evidence must be new.' }
+          New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+          $inventory | Select-Object Name,Live,LiveCloud,LiveRecovery,Processor | ConvertTo-Json -Depth 4 | Set-Content "$evidence/inventory.json" -Encoding utf8
+          Write-Output 'Current source inventory discovered; desktop execution reuses the separately recorded evidence.'
 
       - name: Build and validate processor test package
         shell: pwsh
