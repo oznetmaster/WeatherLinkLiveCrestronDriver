@@ -71,3 +71,4 @@ WeatherLinkLiveCrestronDriver.ProcessorTests/licenses/* -text -whitespace
 # Preserve shared public packaging script hashes across platforms.
 tools/Assert-PublicDriverArtifacts.ps1 text eol=lf
 tools/Test-PublicDriverArtifacts.ps1 text eol=lf
+build/shared/driver-versioning/** text eol=lf
