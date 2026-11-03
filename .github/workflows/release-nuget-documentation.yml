@@ -74,6 +74,10 @@ jobs:
           BASE_VERSION: ${{ inputs.base_version }}
           PATCH_VERSION: ${{ inputs.version }}
         run: ./tools/New-NuGetDocumentationPatch.ps1 -BaseVersion $env:BASE_VERSION -Version $env:PATCH_VERSION -OutputDirectory "$env:RUNNER_TEMP/documentation-patch"
+      - name: Verify public driver artifact contents
+        shell: pwsh
+        run: |
+          ./tools/Assert-PublicDriverArtifacts.ps1 -Path @("$env:RUNNER_TEMP/documentation-patch")
       - name: Publish the verified documentation patch
         shell: pwsh
         env:

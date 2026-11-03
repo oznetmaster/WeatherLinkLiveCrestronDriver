@@ -67,3 +67,7 @@ WeatherLinkLiveCrestronDriver/IncludeInPkg/THIRD-PARTY-NOTICES.txt -text -whites
 
 # Preserve upstream dependency license text.
 WeatherLinkLiveCrestronDriver.ProcessorTests/licenses/* -text -whitespace
+
+# Preserve shared public packaging script hashes across platforms.
+tools/Assert-PublicDriverArtifacts.ps1 text eol=lf
+tools/Test-PublicDriverArtifacts.ps1 text eol=lf
