@@ -43,4 +43,14 @@ try {
     [IO.File]::WriteAllText($temporary,'<test-run />')
     Reject { Read-TestTree $temporary }
 } finally { Remove-Item -LiteralPath $temporary -ErrorAction SilentlyContinue }
+$categoryFixture=Join-Path ([IO.Path]::GetTempPath()) ('weather-coverage-categories-'+[Guid]::NewGuid().ToString('N')+'.xml')
+try {
+    foreach($category in @('LiveCloud','LiveRecovery','OrdinaryLive')) {
+        $property=if($category -ne 'OrdinaryLive'){'<property name="Category" value="'+$category+'" />'}else{''}
+        [IO.File]::WriteAllText($categoryFixture,'<test-run><test-suite><properties><property name="Category" value="Live" />'+$property+'</properties><test-case fullname="Fixture.Case" /></test-suite></test-run>')
+        $case=Read-TestTree $categoryFixture
+        if(!$case.Live -or $case.LiveCloud -ne ($category -eq 'LiveCloud') -or $case.LiveRecovery -ne ($category -eq 'LiveRecovery')){throw 'WeatherLink live suite category flags changed.'}
+        $checks++
+    }
+} finally {Remove-Item -LiteralPath $categoryFixture -ErrorAction SilentlyContinue}
 Write-Host "$checks discovery coverage guard checks passed."

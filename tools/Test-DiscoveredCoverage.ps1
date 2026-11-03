@@ -20,7 +20,7 @@ function Assert-SameTests($Expected,$Actual,[string]$Context) {
     Assert-CoverageTestNames $Expected $Actual $Context
 }
 function Read-TestTree([string]$Path,[switch]$AdapterDump) {
-    Read-CoverageTestTree -Path $Path -AdapterDump:$AdapterDump
+    Read-CoverageTestTree -Path $Path -AdapterDump:$AdapterDump -ExtraCategories @('LiveCloud','LiveRecovery')
 }
 function Assert-TestOutcome($Case,[bool]$AllowSkip) {
     Assert-CoverageTestOutcome -Case $Case -AllowSkip $AllowSkip -AllowedSkipReasons @(
