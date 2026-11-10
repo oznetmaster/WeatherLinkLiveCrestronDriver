@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "WeatherLinkLiveCrestronDriver",
+  "versionFile": "build/ReleaseVersion.props",
+  "versionXPath": "/Project/PropertyGroup/Version",
+  "notesFile": "release-notes/v{version}.md",
+  "packages": [
+    {
+      "frameworks": [],
+      "project": "WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj",
+      "id": "CrestronHomeDriver.WeatherLinkLive.WeatherStation",
+      "symbols": false
+    }
+  ],
+  "applications": [],
+  "documents": [
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "rawLibraries": false,
+  "libraryArchive": false
+}

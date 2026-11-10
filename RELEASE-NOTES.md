@@ -1,15 +1,17 @@
-# WeatherLinkLiveCrestronDriver 2.1.0
+# WeatherLinkLiveCrestronDriver 2.1.1
 
-This minor update restores local station readings automatically after an established connection fails. It uses WeatherLinkLiveLibrary 2.1.0 and retains SimpleWeatherClient 2.0.0. Driver identity, configuration fields, existing commands and UI remain unchanged.
+This patch corrects the dependency and lifecycle issues described below.
 
-- Keep one local client and let it retry after 10, 20, 30, 40, 50, 60 and 120 seconds, then 300 seconds repeatedly. A successful response resets the sequence and immediately restores local readings.
-- Add programmable **WeatherLink Disconnected** (`weatherLinkDisconnected`) and **WeatherLink Reconnected** (`weatherLinkReconnected`) events, once per transition. They describe the local station; working cloud fallback can keep the overall driver online during a local outage. Initial connection does not raise Reconnected.
-- Prevent late cloud responses or callbacks from retired clients from replacing newly recovered readings. Preserve the selected units when reading the retained client.
+- Use WeatherLinkLiveLibrary 2.1.1 and SimpleWeatherClient 2.0.1.
+- Compile routine informational fallback messages out of Release builds while retaining warnings and errors.
+- Preserve station configuration, units and existing recovery behavior.
 
-The candidate passed 94 checks on a Crestron processor: 90 unit/lifecycle checks, three real-station reading checks and a physical station-network recovery test. The cable test observed 10-, 20- and 30-second delays and one event per transition. Longer backoff delays are covered by offline tests. This does not represent a new endurance run or Crestron acceptance.
+## Installation
 
-The release includes processor test package **1.2.1**, built with released **CrestronHomeNUnit 2.0.0 / NUnit 5.0.0**. Its manual station network-recovery suite is separate from unattended tests. Repository desktop tests use NUnit3TestAdapter 6.3.0.
+Use the driver package from [GitHub](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.1) or the matching NuGet distribution. Import the package, then update the existing driver in Home Setup or Configure Pro. Importing alone does not update the running instance. Existing pairing and configuration formats are retained; removal and re-add is not a routine update step.
 
-This version is available from GitHub and NuGet. Crestron's catalog remains **2.0.19**; submission of this update is deferred.
+## Validation
 
-Support: [contact form](https://oznetmaster.github.io/support/). [Source and documentation](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver).
+Passed 139 workstation Debug and 139 Release test executions, plus 91 native net472/Mono processor tests. Processor validation used fake transports and synthetic credentials; no new physical-device acceptance or endurance run is claimed. Existing processor configuration and all pairing files were preserved. See [development history](DEVELOPMENT-HISTORY.md) for provenance and limits.
+
+This GitHub/NuGet release does not replace any submitted Crestron package. Submission-specific PDFs and correspondence are excluded from public artifacts.

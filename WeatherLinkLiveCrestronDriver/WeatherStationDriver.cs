@@ -52,7 +52,10 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 	private CancellationTokenSource _refreshCancellationTokenSource;
 	private WeatherLinkLiveClient _localWeatherClient;
 	private bool _localWeatherDisconnected;
-	internal Func<WeatherLinkLiveClient> LocalWeatherClientFactory { get; set; }
+	internal Func<WeatherLinkLiveClient> LocalWeatherClientFactory
+		{
+		get; set;
+		}
 
 	[EntityEvent (Id = "weatherLinkDisconnected", FriendlyName = "WeatherLink Disconnected", NameLocalizationKey = "Event_WeatherLinkDisconnected")]
 	[EntityEventMetadata (Programmable = true)]
@@ -591,7 +594,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		lock (_stateLock)
 			{
-			if (_disposed) return;
+			if (_disposed)
+				return;
 			_disposed = true;
 			StopRefreshLoop ();
 			base.Dispose ();
@@ -1225,8 +1229,14 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 			}
 		}
 
-	internal Func<CancellationToken, Task<WeatherSnapshot>> LocalWeatherReader { get; set; }
-	internal Func<double, double, CancellationToken, Task<CloudWeatherSnapshot>> CloudWeatherReader { get; set; }
+	internal Func<CancellationToken, Task<WeatherSnapshot>> LocalWeatherReader
+		{
+		get; set;
+		}
+	internal Func<double, double, CancellationToken, Task<CloudWeatherSnapshot>> CloudWeatherReader
+		{
+		get; set;
+		}
 
 	private async Task<WeatherSnapshot> ReadLocalWeatherAsync (CancellationToken cancellationToken)
 		{
@@ -1242,7 +1252,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 				}
 			client = _localWeatherClient;
 			// The client's recovery loop owns attempts during an outage, including their timing.
-			if (_localWeatherDisconnected) throw new System.Net.Http.HttpRequestException ("WeatherLink Live is reconnecting.");
+			if (_localWeatherDisconnected)
+				throw new System.Net.Http.HttpRequestException ("WeatherLink Live is reconnecting.");
 			}
 		DebugLog ("TryGetLocalCurrentWeatherAsync: calling InitializeAsync.");
 		await client.InitializeAsync (cancellationToken).ConfigureAwait (false);
@@ -1255,7 +1266,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		lock (_stateLock)
 			{
-			if (!ReferenceEquals (sender, _localWeatherClient) || _localWeatherDisconnected) return;
+			if (!ReferenceEquals (sender, _localWeatherClient) || _localWeatherDisconnected)
+				return;
 			_localWeatherDisconnected = true;
 			_lastLocalCurrentAvailable = false;
 			_lastSourceSummary = "Source: WeatherLink Live unavailable";
@@ -1267,7 +1279,8 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 		{
 		lock (_stateLock)
 			{
-			if (!ReferenceEquals (sender, _localWeatherClient) || !_localWeatherDisconnected) return;
+			if (!ReferenceEquals (sender, _localWeatherClient) || !_localWeatherDisconnected)
+				return;
 			WeatherSnapshot snapshot = ReadLocalSnapshot (_localWeatherClient);
 			_localWeatherDisconnected = false;
 			_lastLocalCurrentAvailable = true;
@@ -2010,6 +2023,7 @@ public sealed class WeatherStationDriver : ReflectedAttributeDriverEntity
 
 	private void LogError (string message) => _logger?.Log (_logControllerId, LogEntryLevel.Error, message);
 
+	[Conditional ("DEBUG")]
 	private void LogInformation (string message) => _logger?.Log (_logControllerId, LogEntryLevel.Info, message);
 
 	internal sealed class CloudWeatherSnapshot

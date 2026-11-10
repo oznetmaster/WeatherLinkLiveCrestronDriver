@@ -5,10 +5,14 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Crestron.DeviceDrivers.EntityModel;
 using Crestron.DeviceDrivers.SDK;
 using Crestron.DeviceDrivers.SDK.EntityModel;
+using Crestron.DeviceDrivers.EntityModel.Logging;
+
 using NUnit.Framework;
+
 using WeatherlinkLive.CrestronDriver;
 
 namespace WeatherLinkLiveCrestronDriver.Tests;
@@ -32,8 +36,50 @@ public sealed class RefreshLifecycleTests
 		_driver.CloudWeatherReader = (lat, lon, ct) => Task.FromResult (new WeatherStationDriver.CloudWeatherSnapshot (null, null, DateTime.UtcNow, "Synthetic location"));
 		}
 	[TearDown]
-	public void TearDown () { _driver?.Dispose (); _logger?.Dispose (); }
+	public void TearDown ()
+		{
+		_driver?.Dispose ();
+		_logger?.Dispose ();
+		}
 	private void Set (string name, object value) => typeof (WeatherStationDriver).GetField (name, Private).SetValue (_driver, value);
+	private sealed class LogSpy : DriverControllerLogger
+		{
+		internal int Information, Warnings, Errors;
+		public override bool IsEnabled (string id, LogEntryLevel level) => true;
+		public override LogEntryLevel GetCurrentLevel (string id) => LogEntryLevel.Info;
+		public override void Exception (string id, Exception exception, string message, params object[] args) => Log (id, LogEntryLevel.Error, message);
+		public override void Log (string id, LogEntryLevel level, string message)
+			{
+			if (level == LogEntryLevel.Info)
+				Information++;
+			if (level == LogEntryLevel.Warning)
+				Warnings++;
+			if (level == LogEntryLevel.Error)
+				Errors++;
+			}
+		public override void Log (string id, LogEntryLevel level, string message, params object[] args) => Log (id, level, message);
+		public override void Log<T> (string id, LogEntryLevel level, string message, T arg) => Log (id, level, message);
+		public override void Log<T1, T2> (string id, LogEntryLevel level, string message, T1 first, T2 second) => Log (id, level, message);
+		public override void Log<T1, T2, T3> (string id, LogEntryLevel level, string message, T1 first, T2 second, T3 third) => Log (id, level, message);
+		}
+
+	[Test]
+	public async Task NormalFallbackInformationIsDebugOnlyButWarningsAndErrorsRemain ()
+		{
+		var spy = new LogSpy ();
+		Set ("_logger", spy);
+		Set ("_weatherLinkLiveHost", string.Empty);
+		await TestSupport.Complete ((Task)Call ("TryGetLocalCurrentWeatherAsync", CancellationToken.None));
+#if DEBUG
+		Assert.That (spy.Information, Is.EqualTo (1));
+#else
+		Assert.That (spy.Information, Is.Zero);
+#endif
+		Call ("LogWarning", "Synthetic warning");
+		Call ("LogError", "Synthetic error");
+		Assert.That (spy.Warnings, Is.EqualTo (1));
+		Assert.That (spy.Errors, Is.EqualTo (1));
+		}
 	private object Field (string name) => typeof (WeatherStationDriver).GetField (name, Private).GetValue (_driver);
 	private object Call (string name, params object[] args) => typeof (WeatherStationDriver).GetMethod (name, Private).Invoke (_driver, args);
 	private Task Cloud () => (Task)Call ("GetRequestedCloudWeatherSnapshotAsync", 56d, -5d, true, CancellationToken.None);
@@ -55,7 +101,8 @@ public sealed class RefreshLifecycleTests
 	public async Task NoCurrentSourceReportsOfflineAndRecovers (bool localOnly, bool cloudThrows)
 		{
 		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
-		if (cloudThrows) _driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
+		if (cloudThrows)
+			_driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
 		await TestSupport.Complete (Refresh (localOnly));
 		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False);
 		Assert.That (_driver.ReadyIndicatorIsReady, Is.True);
@@ -75,7 +122,8 @@ public sealed class RefreshLifecycleTests
 		{
 		await TestSupport.Complete (Refresh (localOnly));
 		_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
-		if (cloudThrows) _driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
+		if (cloudThrows)
+			_driver.CloudWeatherReader = (lat, lon, ct) => throw new InvalidOperationException ("Synthetic cloud unavailable");
 		RequestFreshCloud ();
 		await TestSupport.Complete (Refresh (localOnly));
 		Assert.That (_driver.OnlineIndicatorIsOnline, Is.False);
@@ -100,9 +148,10 @@ public sealed class RefreshLifecycleTests
 		RequestFreshCloud ();
 		_driver.CloudWeatherReader = (lat, lon, ct) =>
 			{
-			reads++;
-			if (cloudThrows) throw new InvalidOperationException ("Synthetic cloud unavailable");
-			return Task.FromResult (new WeatherStationDriver.CloudWeatherSnapshot (null, null, DateTime.UtcNow, "Synthetic location"));
+				reads++;
+				if (cloudThrows)
+					throw new InvalidOperationException ("Synthetic cloud unavailable");
+				return Task.FromResult (new WeatherStationDriver.CloudWeatherSnapshot (null, null, DateTime.UtcNow, "Synthetic location"));
 			};
 		await TestSupport.Complete (Refresh (localOnly));
 		Assert.That (reads, Is.EqualTo (2), "A real provider failure must be exercised rather than a throttled cache hit.");
@@ -147,7 +196,8 @@ public sealed class RefreshLifecycleTests
 		{
 		var entered = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
 		var release = new TaskCompletionSource<bool> (TaskCreationOptions.RunContinuationsAsynchronously);
-		if (!localHealthy) _driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
+		if (!localHealthy)
+			_driver.LocalWeatherReader = ct => throw new InvalidOperationException ("Synthetic station unavailable");
 		RequestFreshCloud ();
 		_driver.CloudWeatherReader = async (lat, lon, ct) => { entered.TrySetResult (true); await release.Task; throw new InvalidOperationException ("Synthetic late cloud failure"); };
 		Task refresh = Refresh (localOnly);
@@ -216,7 +266,8 @@ public sealed class RefreshLifecycleTests
 	[TestCase (true)]
 	public async Task FailedCloudAttemptIsThrottledWithOrWithoutCachedWeather (bool cached)
 		{
-		if (cached) Set ("_cloudWeatherSnapshot", new WeatherStationDriver.CloudWeatherSnapshot (null, CloudCurrent ().CurrentWeather, DateTime.UtcNow.AddMinutes (-20), "Cached"));
+		if (cached)
+			Set ("_cloudWeatherSnapshot", new WeatherStationDriver.CloudWeatherSnapshot (null, CloudCurrent ().CurrentWeather, DateTime.UtcNow.AddMinutes (-20), "Cached"));
 		Set ("_forecastRequestPending", true);
 		int reads = 0;
 		_driver.CloudWeatherReader = (lat, lon, ct) => { reads++; throw new InvalidOperationException ("Synthetic cloud failure"); };
@@ -261,12 +312,18 @@ public sealed class RefreshLifecycleTests
 		try
 			{
 			await TestSupport.Complete (entered.Task);
-			if (dispose) _driver.Dispose ();
-			else Call ("ApplyConfigurationItems", DataDrivenConfigurationController.ApplyConfigurationAction.ClearValues, null, null);
+			if (dispose)
+				_driver.Dispose ();
+			else
+				Call ("ApplyConfigurationItems", DataDrivenConfigurationController.ApplyConfigurationAction.ClearValues, null, null);
 			}
 		finally { release.TrySetResult (true); }
 		string display = _driver.CurrentTemperatureDisplay;
-		try { await TestSupport.Complete (refresh); } catch (OperationCanceledException) { }
+		try
+			{
+			await TestSupport.Complete (refresh);
+			}
+		catch (OperationCanceledException) { }
 		Assert.That (Field ("_lastLocalWeatherSnapshot"), Is.Null);
 		Assert.That (Field ("_cloudWeatherSnapshot"), Is.Null);
 		Assert.That (_driver.CurrentTemperatureDisplay, Is.EqualTo (display));

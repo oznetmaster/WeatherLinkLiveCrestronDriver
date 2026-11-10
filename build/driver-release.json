@@ -1,0 +1,15 @@
+{
+  "name": "WeatherLinkLiveCrestronDriver",
+  "version": "2.1.1",
+  "packages": [
+    {
+      "id": "CrestronHomeDriver.WeatherLinkLive.WeatherStation",
+      "project": "WeatherLinkLiveCrestronDriver/WeatherLinkLiveCrestronDriver.csproj",
+      "manifest": "WeatherLinkLiveCrestronDriver/WeatherlinkLiveCrestronDriver.json",
+      "payload": "NeilColvin_WeatherStation_WeatherLinkLive_IP_V2.pkg",
+      "displayName": "WeatherLinkLiveCrestronDriver",
+      "vendor": "WeatherLink Live",
+      "category": "Weather"
+    }
+  ]
+}

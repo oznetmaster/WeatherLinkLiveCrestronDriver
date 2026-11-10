@@ -2,6 +2,12 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
+## [2.1.1](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.1) - 2026-11-10
+
+- Use WeatherLinkLiveLibrary 2.1.1 and SimpleWeatherClient 2.0.1.
+- Compile routine informational fallback messages out of Release builds while retaining warnings and errors.
+- Preserve station configuration, units and existing recovery behavior.
+
 ## [2.1.0](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.0) — 2026-10-01
 
 - Add automatic local-station recovery and programmable disconnect/reconnect events through WeatherLinkLiveLibrary 2.1.0.
