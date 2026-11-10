@@ -1,4 +1,4 @@
-# WeatherLinkLiveCrestronDriver 2.1.1
+# WeatherLinkLiveCrestronDriver 2.1.2
 
 This patch corrects the dependency and lifecycle issues described below.
 
@@ -8,7 +8,7 @@ This patch corrects the dependency and lifecycle issues described below.
 
 ## Installation
 
-Use the driver package from [GitHub](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.1) or the matching NuGet distribution. Import the package, then update the existing driver in Home Setup or Configure Pro. Importing alone does not update the running instance. Existing pairing and configuration formats are retained; removal and re-add is not a routine update step.
+Use the driver package from [GitHub](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.2) or the matching NuGet distribution. Import the package, then update the existing driver in Home Setup or Configure Pro. Importing alone does not update the running instance. Existing pairing and configuration formats are retained; removal and re-add is not a routine update step.
 
 ## Validation
 

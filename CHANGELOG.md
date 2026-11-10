@@ -2,7 +2,7 @@
 
 This changelog records shipped features, fixes, compatibility and runtime dependency changes. See [development and validation history](DEVELOPMENT-HISTORY.md) for tests, CI, build tooling and work not yet released.
 
-## [2.1.1](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.1) - 2026-11-10
+## [2.1.2](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.2) - 2026-11-10
 
 - Use WeatherLinkLiveLibrary 2.1.1 and SimpleWeatherClient 2.0.1.
 - Compile routine informational fallback messages out of Release builds while retaining warnings and errors.

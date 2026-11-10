@@ -1,10 +1,10 @@
 # WeatherLinkLiveCrestronDriver
 
-## Current GitHub/NuGet release: 2.1.1
+## Current GitHub/NuGet release: 2.1.2
 
-[Download 2.1.1](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.1) or use the matching NuGet driver distribution. This patch includes the audited dependency and lifecycle corrections; see [release notes](RELEASE-NOTES.md). Existing configuration and pairing formats are retained. Crestron catalog/submission versions below retain their separate attribution.
+[Download 2.1.2](https://github.com/oznetmaster/WeatherLinkLiveCrestronDriver/releases/tag/v2.1.2) or use the matching NuGet driver distribution. This patch includes the audited dependency and lifecycle corrections; see [release notes](RELEASE-NOTES.md). Existing configuration and pairing formats are retained. Crestron catalog/submission versions below retain their separate attribution.
 
-Version **2.1.1** is the current GitHub/NuGet update, retaining the recovery improvements in 2.1.0. It has **not yet been submitted to or published by Crestron**; the Crestron catalog version below remains 2.0.19.
+Version **2.1.2** is the current GitHub/NuGet update, retaining the recovery improvements in 2.1.0. It has **not yet been submitted to or published by Crestron**; the Crestron catalog version below remains 2.0.19.
 
 ## Crestron availability
 
